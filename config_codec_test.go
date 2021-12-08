@@ -29,11 +29,16 @@ func TestConfigCodec(t *testing.T) {
 		loaded.Call(func(
 			createdTime2 CreatedTime,
 			id2 uuid.UUID,
+			action TestAction,
 		) {
 			if createdTime2 != createdTime {
 				t.Fatal()
 			}
 			if id2 != id {
+				t.Fatal()
+			}
+			_, ok := action.Action.(SequentialAction)
+			if !ok {
 				t.Fatal()
 			}
 		})
