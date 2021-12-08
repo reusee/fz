@@ -6,7 +6,7 @@ import (
 	"github.com/reusee/dscope"
 )
 
-type Checkers []func() (ok bool, err error)
+type Checkers []func() (err error)
 
 var _ dscope.Reducer = Checkers{}
 
