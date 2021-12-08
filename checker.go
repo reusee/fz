@@ -7,8 +7,10 @@ import (
 )
 
 type Checker struct {
-	BeforeDo func() error
-	AfterDo  func() error
+	BeforeStart func() error
+	BeforeDo    func() error
+	AfterDo     func() error
+	AfterStop   func() error
 }
 
 type Checkers []Checker

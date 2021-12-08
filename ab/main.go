@@ -24,6 +24,10 @@ func main() {
 
 	configDefs := dscope.Methods(new(fz.ConfigScope))
 	configDefs = append(configDefs, dscope.Methods(new(ConfigScope))...)
+	configDefs = append(configDefs, func() {
+		//TODO basic actions
+		//TODO TestAction
+	})
 	configScope := globalScope.Fork(configDefs...)
 
 	executeDefs := dscope.Methods(new(fz.ExecuteScope))
