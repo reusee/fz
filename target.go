@@ -1,6 +1,6 @@
 package fz
 
-type Cluster interface {
+type Target interface {
 	Start() error
 	Do(action Action) error
 	Stop() error
