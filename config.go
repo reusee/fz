@@ -1,48 +1,56 @@
 package fz
 
 import (
-	"math/rand"
+	"fmt"
 	"reflect"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/reusee/dscope"
 )
 
 type ConfigScope struct{}
 
-type ConfigEntries map[string]any
+type ConfigMap map[string]any
 
-var _ dscope.Reducer = ConfigEntries{}
+var _ dscope.Reducer = ConfigMap{}
 
-func (_ ConfigEntries) Reduce(_ dscope.Scope, vs []reflect.Value) reflect.Value {
-	return dscope.Reduce(vs)
+func (_ ConfigMap) Reduce(_ dscope.Scope, vs []reflect.Value) reflect.Value {
+	ret := make(ConfigMap)
+	for _, value := range vs {
+		m := value.Interface().(ConfigMap)
+		for k, v := range m {
+			if _, ok := ret[k]; ok {
+				panic(fmt.Errorf("duplicated config key: %s", k))
+			}
+			ret[k] = v
+		}
+	}
+	return reflect.ValueOf(ret)
 }
 
-// demo
+// built-ins
 
-type Foo int64
+type CreatedTime string
 
-func (_ ConfigScope) Foo() (
-	foo Foo,
-	entries ConfigEntries,
+func (_ ConfigScope) CreateTime() (
+	t CreatedTime,
+	m ConfigMap,
 ) {
-	foo = Foo(rand.Int63())
-	entries = ConfigEntries{
-		"foo": foo,
+	t = CreatedTime(time.Now().Format(time.RFC3339))
+	m = ConfigMap{
+		"created_time": t,
 	}
 	return
 }
 
-type Bar int64
-
-func (_ ConfigScope) Bar(
-	foo Foo,
-) (
-	bar Bar,
-	entries ConfigEntries,
+func (_ ConfigScope) UUID() (
+	id uuid.UUID,
+	m ConfigMap,
 ) {
-	bar = Bar(foo * 2)
-	entries = ConfigEntries{
-		"bar": bar,
+	id = uuid.New()
+	m = ConfigMap{
+		"config_id": id,
 	}
 	return
 }
