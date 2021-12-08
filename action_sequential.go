@@ -6,6 +6,10 @@ type SequentialAction struct {
 	Actions []Action
 }
 
+func init() {
+	RegisterAction(SequentialAction{})
+}
+
 func Seq(actions ...Action) SequentialAction {
 	return SequentialAction{
 		Actions: actions,

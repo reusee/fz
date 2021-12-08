@@ -6,6 +6,10 @@ type ParallelAction struct {
 	Actions []Action
 }
 
+func init() {
+	RegisterAction(ParallelAction{})
+}
+
 func Par(actions ...Action) ParallelAction {
 	return ParallelAction{
 		Actions: actions,

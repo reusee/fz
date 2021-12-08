@@ -3,10 +3,28 @@ package fz
 import (
 	"bytes"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
+	"reflect"
 	"strings"
+	"sync"
+
+	"github.com/reusee/e4"
 )
+
+var registeredActionTypes sync.Map
+
+func RegisterAction(value any) {
+	t := reflect.TypeOf(value)
+	name := t.Name()
+	if name == "" {
+		panic(fmt.Errorf("Action must be named type: %T", value))
+	}
+	registeredActionTypes.Store(name, t)
+}
+
+var ErrUnknownAction = errors.New("unknown action")
 
 func unmarshalAction(d *xml.Decoder, target *Action) (err error) {
 	var data struct {
@@ -17,43 +35,28 @@ func unmarshalAction(d *xml.Decoder, target *Action) (err error) {
 		return we(err)
 	}
 
-	switch data.XMLName.Local {
-
-	case "SequentialAction":
-		var action SequentialAction
-		valueDecoder := xml.NewDecoder(
-			io.MultiReader(
-				strings.NewReader("<"),
-				strings.NewReader(data.XMLName.Local),
-				strings.NewReader(">"),
-				bytes.NewReader(data.Raw),
-				strings.NewReader("</"),
-				strings.NewReader(data.XMLName.Local),
-				strings.NewReader(">"),
-			),
-		)
-		ce(valueDecoder.Decode(&action))
-		*target = action
-
-	case "ParallelAction":
-		var action ParallelAction
-		valueDecoder := xml.NewDecoder(
-			io.MultiReader(
-				strings.NewReader("<"),
-				strings.NewReader(data.XMLName.Local),
-				strings.NewReader(">"),
-				bytes.NewReader(data.Raw),
-				strings.NewReader("</"),
-				strings.NewReader(data.XMLName.Local),
-				strings.NewReader(">"),
-			),
-		)
-		ce(valueDecoder.Decode(&action))
-		*target = action
-
-	default:
-		panic(fmt.Errorf("unknown action: %s", data.XMLName.Local))
+	v, ok := registeredActionTypes.Load(data.XMLName.Local)
+	if !ok {
+		return we.With(
+			e4.Info("action: %s", data.XMLName.Local),
+		)(ErrUnknownAction)
 	}
+	t := v.(reflect.Type)
+
+	ptr := reflect.New(t)
+	valueDecoder := xml.NewDecoder(
+		io.MultiReader(
+			strings.NewReader("<"),
+			strings.NewReader(data.XMLName.Local),
+			strings.NewReader(">"),
+			bytes.NewReader(data.Raw),
+			strings.NewReader("</"),
+			strings.NewReader(data.XMLName.Local),
+			strings.NewReader(">"),
+		),
+	)
+	ce(valueDecoder.Decode(ptr.Interface()))
+	*target = ptr.Elem().Interface().(Action)
 
 	return
 }
