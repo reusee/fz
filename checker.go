@@ -6,7 +6,12 @@ import (
 	"github.com/reusee/dscope"
 )
 
-type Checkers []func() (err error)
+type Checker struct {
+	BeforeDo func() error
+	AfterDo  func() error
+}
+
+type Checkers []Checker
 
 var _ dscope.Reducer = Checkers{}
 
