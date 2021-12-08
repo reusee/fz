@@ -10,8 +10,6 @@ import (
 	"github.com/reusee/dscope"
 )
 
-type ConfigScope struct{}
-
 type ConfigMap map[string]any
 
 var _ dscope.Reducer = ConfigMap{}

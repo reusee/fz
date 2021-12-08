@@ -1,7 +1,9 @@
 package fz
 
-type Target interface {
-	Start() error
-	Do(action Action) error
-	Stop() error
-}
+// must provide these functions to control target
+
+type Start func() error
+
+type Stop func() error
+
+type Do func(action Action) error
