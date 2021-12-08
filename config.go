@@ -39,7 +39,7 @@ func (_ ConfigScope) CreateTime() (
 ) {
 	t = CreatedTime(time.Now().Format(time.RFC3339))
 	m = ConfigMap{
-		"created_time": t,
+		"CreatedTime": t,
 	}
 	return
 }
@@ -50,7 +50,24 @@ func (_ ConfigScope) UUID() (
 ) {
 	id = uuid.New()
 	m = ConfigMap{
-		"config_id": id,
+		"ConfigID": id,
+	}
+	return
+}
+
+type TestAction struct {
+	Action Action
+}
+
+func (_ ConfigScope) DefaultAction() (
+	action TestAction,
+	m ConfigMap,
+) {
+	action = TestAction{
+		Action: Seq(),
+	}
+	m = ConfigMap{
+		"TestAction": action,
 	}
 	return
 }
