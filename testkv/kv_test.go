@@ -38,15 +38,14 @@ func TestKV(t *testing.T) {
 	})
 
 	// provide configs
-	configDefs = append(configDefs, func() (
+	configDefs = append(configDefs, func() MaxClients {
+		return 8
+	}, func(
 		maxClients MaxClients,
-		m fz.ConfigMap,
-	) {
-		maxClients = 8
-		m = fz.ConfigMap{
+	) fz.ConfigMap {
+		return fz.ConfigMap{
 			"MaxClients": maxClients,
 		}
-		return
 	})
 
 	configScope := global.Fork(configDefs...)

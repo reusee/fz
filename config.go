@@ -31,24 +31,26 @@ func (_ ConfigMap) Reduce(_ dscope.Scope, vs []reflect.Value) reflect.Value {
 
 type CreatedTime string
 
-func (_ ConfigScope) CreateTime() (
-	t CreatedTime,
-	m ConfigMap,
-) {
-	t = CreatedTime(time.Now().Format(time.RFC3339))
-	m = ConfigMap{
-		"CreatedTime": t,
-	}
-	return
+func (_ ConfigScope) CreateTime() CreatedTime {
+	return CreatedTime(time.Now().Format(time.RFC3339))
 }
 
-func (_ ConfigScope) UUID() (
+func (_ ConfigScope) CreatedTimeConfig(
+	t CreatedTime,
+) ConfigMap {
+	return ConfigMap{
+		"CreatedTime": t,
+	}
+}
+
+func (_ ConfigScope) UUID() uuid.UUID {
+	return uuid.New()
+}
+
+func (_ ConfigScope) UUIDConfig(
 	id uuid.UUID,
-	m ConfigMap,
-) {
-	id = uuid.New()
-	m = ConfigMap{
+) ConfigMap {
+	return ConfigMap{
 		"ConfigID": id,
 	}
-	return
 }
