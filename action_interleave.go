@@ -16,10 +16,12 @@ func InterleaveAction(args ...Action) Action {
 		for len(steps) > 0 {
 			step := steps[0]
 			steps = steps[1:]
-			cut := rand.Intn(len(right))
-			left = append(left, right[:cut]...)
+			if len(right) > 0 {
+				cut := rand.Intn(len(right))
+				left = append(left, right[:cut]...)
+				right = right[cut:]
+			}
 			left = append(left, step)
-			right = right[cut:]
 		}
 		actions = append(left, right...)
 	}

@@ -12,12 +12,23 @@ import (
 func TestConfigCodec(t *testing.T) {
 	defer he(nil, e4.TestingFatal(t))
 
-	scope := dscope.New(dscope.Methods(new(ConfigScope))...)
+	configDefs := dscope.Methods(new(ConfigScope))
+	configDefs = append(configDefs, func() ActionGenerators {
+		return ActionGenerators{
+			func() Action {
+				return Seq()
+			},
+		}
+	})
+	scope := dscope.New(configDefs...)
+
 	scope.Call(func(
 		write WriteConfig,
 		read ReadConfig,
 		createdTime CreatedTime,
 		id uuid.UUID,
+		scope dscope.Scope,
+		action TestAction,
 	) {
 		buf := new(bytes.Buffer)
 		ce(write(buf))
@@ -25,11 +36,11 @@ func TestConfigCodec(t *testing.T) {
 		decls, err := read(buf)
 		ce(err)
 
-		loaded := dscope.New(decls...)
+		loaded := scope.Fork(decls...)
 		loaded.Call(func(
 			createdTime2 CreatedTime,
 			id2 uuid.UUID,
-			action TestAction,
+			action2 TestAction,
 		) {
 			if createdTime2 != createdTime {
 				t.Fatal()
@@ -37,8 +48,8 @@ func TestConfigCodec(t *testing.T) {
 			if id2 != id {
 				t.Fatal()
 			}
-			_, ok := action.Action.(SequentialAction)
-			if !ok {
+			//TODO
+			if action2.Action == action.Action {
 				t.Fatal()
 			}
 		})

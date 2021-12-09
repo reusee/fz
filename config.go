@@ -1,7 +1,6 @@
 package fz
 
 import (
-	"encoding/xml"
 	"fmt"
 	"reflect"
 	"time"
@@ -50,35 +49,6 @@ func (_ ConfigScope) UUID() (
 	id = uuid.New()
 	m = ConfigMap{
 		"ConfigID": id,
-	}
-	return
-}
-
-type TestAction struct {
-	Action Action
-}
-
-var _ xml.Unmarshaler = new(TestAction)
-
-func (t *TestAction) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
-	if err := unmarshalAction(d, &t.Action); err != nil {
-		return we(err)
-	}
-	if err := d.Skip(); err != nil {
-		return we(err)
-	}
-	return nil
-}
-
-func (_ ConfigScope) DefaultAction() (
-	action TestAction,
-	m ConfigMap,
-) {
-	action = TestAction{
-		Action: Seq(),
-	}
-	m = ConfigMap{
-		"TestAction": action,
 	}
 	return
 }
