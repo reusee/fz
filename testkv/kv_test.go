@@ -78,12 +78,16 @@ func TestKV(t *testing.T) {
 		return
 	})
 
+	// operators
 	executeDefs = append(executeDefs, &fz.Operators{
+		// ad-hoc
 		fz.Operator{
 			AfterStop: func() {
 				pt("test done\n")
 			},
 		},
+		// cpu profile
+		fz.NewCPUProfiler("cpu-profile"),
 	})
 
 	executeScope := configScope.Fork(executeDefs...)

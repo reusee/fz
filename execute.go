@@ -18,6 +18,14 @@ func (_ ExecuteScope) Execute(
 	return func() (err error) {
 		defer he(&err)
 
+		defer func() {
+			for _, op := range ops {
+				if op.Finally != nil {
+					call(op.Finally)
+				}
+			}
+		}()
+
 		for _, op := range ops {
 			if op.BeforeStart != nil {
 				call(op.BeforeStart)

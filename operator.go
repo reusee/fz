@@ -11,6 +11,7 @@ type Operator struct {
 	BeforeDo    any
 	AfterDo     any
 	AfterStop   any
+	Finally     any
 }
 
 type Operators []Operator
