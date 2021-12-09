@@ -45,12 +45,6 @@ var leafRandTreeFuncs = []func([]Action) Action{
 		return Seq(actions...)
 	},
 	func(actions []Action) Action {
-		return RandomAction(actions...)
-	},
-	func(actions []Action) Action {
 		return Par(actions...)
-	},
-	func(actions []Action) Action {
-		return InterleaveAction(actions...)
 	},
 }
