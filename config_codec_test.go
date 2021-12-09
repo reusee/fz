@@ -2,6 +2,7 @@ package fz
 
 import (
 	"bytes"
+	"reflect"
 	"testing"
 
 	"github.com/google/uuid"
@@ -48,8 +49,7 @@ func TestConfigCodec(t *testing.T) {
 			if id2 != id {
 				t.Fatal()
 			}
-			//TODO
-			if action2.Action == action.Action {
+			if !reflect.DeepEqual(action2.Action, action.Action) {
 				t.Fatal()
 			}
 		})

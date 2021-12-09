@@ -27,6 +27,7 @@ func RegisterAction(value any) {
 var ErrUnknownAction = errors.New("unknown action")
 
 func unmarshalAction(d *xml.Decoder, target *Action) (err error) {
+
 	var data struct {
 		XMLName xml.Name
 		Raw     []byte `xml:",innerxml"`

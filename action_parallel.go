@@ -1,6 +1,9 @@
 package fz
 
-import "encoding/xml"
+import (
+	"encoding/xml"
+	"io"
+)
 
 type ParallelAction struct {
 	Actions []Action
@@ -42,6 +45,24 @@ func (s ParallelAction) MarshalXML(e *xml.Encoder, start xml.StartElement) (err 
 			Local: "ParallelAction",
 		},
 	}))
+
+	return
+}
+
+var _ xml.Unmarshaler = new(ParallelAction)
+
+func (s *ParallelAction) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
+	defer he(&err)
+
+	for {
+		var action Action
+		err := unmarshalAction(d, &action)
+		if is(err, io.EOF) {
+			err = nil
+			break
+		}
+		s.Actions = append(s.Actions, action)
+	}
 
 	return
 }
