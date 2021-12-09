@@ -1,5 +1,7 @@
 package fz
 
+import "github.com/reusee/dscope"
+
 //TODO
 type ProgramID string
 
@@ -11,13 +13,14 @@ func (_ ExecuteScope) Execute(
 	do Do,
 	testAction TestAction,
 	ops Operators,
+	call dscope.Call,
 ) Execute {
 	return func() (err error) {
 		defer he(&err)
 
 		for _, op := range ops {
 			if op.BeforeStart != nil {
-				ce(op.BeforeStart())
+				call(op.BeforeStart)
 			}
 		}
 
@@ -28,7 +31,7 @@ func (_ ExecuteScope) Execute(
 
 		for _, op := range ops {
 			if op.BeforeDo != nil {
-				ce(op.BeforeDo())
+				call(op.BeforeDo)
 			}
 		}
 
@@ -39,7 +42,7 @@ func (_ ExecuteScope) Execute(
 
 		for _, op := range ops {
 			if op.AfterDo != nil {
-				ce(op.AfterDo())
+				call(op.AfterDo)
 			}
 		}
 
@@ -50,7 +53,7 @@ func (_ ExecuteScope) Execute(
 
 		for _, op := range ops {
 			if op.AfterStop != nil {
-				ce(op.AfterStop())
+				call(op.AfterStop)
 			}
 		}
 

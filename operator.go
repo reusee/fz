@@ -7,10 +7,10 @@ import (
 )
 
 type Operator struct {
-	BeforeStart func() error
-	BeforeDo    func() error
-	AfterDo     func() error
-	AfterStop   func() error
+	BeforeStart any
+	BeforeDo    any
+	AfterDo     any
+	AfterStop   any
 }
 
 type Operators []Operator
