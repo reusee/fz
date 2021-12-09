@@ -8,10 +8,7 @@ import (
 )
 
 type Action interface {
-	Type() ActionType
 }
-
-type ActionType string
 
 type ActionGenerators []func() Action
 

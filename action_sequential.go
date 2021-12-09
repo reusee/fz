@@ -21,10 +21,6 @@ func Seq(actions ...Action) SequentialAction {
 
 var _ Action = SequentialAction{}
 
-func (_ SequentialAction) Type() ActionType {
-	return "sequence"
-}
-
 var _ xml.Marshaler = SequentialAction{}
 
 func (s SequentialAction) MarshalXML(e *xml.Encoder, start xml.StartElement) (err error) {

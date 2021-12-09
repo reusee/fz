@@ -116,9 +116,3 @@ type ActionSetThenGet struct {
 	Key   any
 	Value any
 }
-
-var _ fz.Action = ActionSetThenGet{}
-
-func (_ ActionSetThenGet) Type() fz.ActionType {
-	return "set-then-get"
-}

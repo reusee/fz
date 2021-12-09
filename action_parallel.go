@@ -21,10 +21,6 @@ func Par(actions ...Action) ParallelAction {
 
 var _ Action = ParallelAction{}
 
-func (_ ParallelAction) Type() ActionType {
-	return "parallel"
-}
-
 var _ xml.Marshaler = ParallelAction{}
 
 func (s ParallelAction) MarshalXML(e *xml.Encoder, start xml.StartElement) (err error) {
