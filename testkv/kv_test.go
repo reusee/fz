@@ -20,10 +20,17 @@ func TestKV(t *testing.T) {
 	// actions
 	configDefs = append(configDefs, &fz.ActionGenerators{
 		func() fz.Action {
-			return ActionSetThenGet{
-				Key:   rand.Int63(),
-				Value: rand.Int63(),
-			}
+			key := rand.Int63()
+			value := rand.Int63()
+			return fz.Seq(
+				ActionSet{
+					Key:   key,
+					Value: value,
+				},
+				ActionGet{
+					Key: key,
+				},
+			)
 		},
 	})
 
@@ -74,8 +81,10 @@ func TestKV(t *testing.T) {
 		do = func(action fz.Action) error {
 			switch action := action.(type) {
 
-			case ActionSetThenGet:
+			case ActionSet:
 				kv.Set(action.Key, action.Value)
+
+			case ActionGet:
 				kv.Get(action.Key)
 
 			default:
@@ -112,7 +121,11 @@ func TestKV(t *testing.T) {
 
 type MaxClients int
 
-type ActionSetThenGet struct {
+type ActionSet struct {
 	Key   any
 	Value any
+}
+
+type ActionGet struct {
+	Key any
 }
