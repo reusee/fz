@@ -1,6 +1,10 @@
 package fz
 
-import "github.com/reusee/dscope"
+import (
+	"sync"
+
+	"github.com/reusee/dscope"
+)
 
 type (
 	Start func() error
@@ -17,6 +21,7 @@ func (_ ExecuteScope) Execute(
 	testAction TestAction,
 	ops Operators,
 	call dscope.Call,
+	doAction DoAction,
 ) Execute {
 	return func() (err error) {
 		defer he(&err)
@@ -49,7 +54,7 @@ func (_ ExecuteScope) Execute(
 		if do == nil {
 			panic("Do not provided")
 		}
-		//TODO run testAction
+		ce(doAction(testAction.Action))
 
 		for _, op := range ops {
 			if op.AfterDo != nil {
@@ -70,4 +75,61 @@ func (_ ExecuteScope) Execute(
 
 		return
 	}
+}
+
+type DoAction func(action Action) error
+
+func (_ ExecuteScope) DoAction(
+	do Do,
+) (
+	doAction DoAction,
+) {
+
+	doAction = func(action Action) error {
+		switch action := action.(type) {
+
+		case SequentialAction:
+			// sequential action
+			for _, action := range action.Actions {
+				if err := doAction(action); err != nil {
+					return err
+				}
+			}
+
+		case ParallelAction:
+			// parallel action
+			wg := new(sync.WaitGroup)
+			errCh := make(chan error, 1)
+			for _, action := range action.Actions {
+				select {
+				case err := <-errCh:
+					return err
+				default:
+				}
+				action := action
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					err := doAction(action)
+					if err != nil {
+						select {
+						case errCh <- err:
+						default:
+						}
+					}
+				}()
+			}
+			wg.Wait()
+
+		default:
+			// send to target
+			if err := do(action); err != nil {
+				return err
+			}
+
+		}
+		return nil
+	}
+
+	return
 }

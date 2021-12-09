@@ -20,7 +20,7 @@ func (k *KV) Set(key any, value any) {
 	defer func() {
 		<-k.sem
 	}()
-	k.Set(key, value)
+	k.kv.Store(key, value)
 }
 
 func (k *KV) Get(key any) (value any) {

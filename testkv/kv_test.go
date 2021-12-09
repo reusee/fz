@@ -77,9 +77,11 @@ func TestKV(t *testing.T) {
 			case ActionSetThenGet:
 				kv.Set(action.Key, action.Value)
 				kv.Get(action.Key)
-			}
 
-			panic(fmt.Errorf("unknown action: %T", action))
+			default:
+				panic(fmt.Errorf("unknown action: %T", action))
+			}
+			return nil
 		}
 
 		return
@@ -98,8 +100,12 @@ func TestKV(t *testing.T) {
 
 	executeScope.Call(func(
 		execute fz.Execute,
+		writeConfig fz.WriteConfig,
 	) {
 		ce(execute())
+
+		// display config file
+		//ce(writeConfig(os.Stdout))
 	})
 
 }
