@@ -26,3 +26,27 @@ func NewCPUProfiler(filename string) Operator {
 		},
 	}
 }
+
+type EnableCPUProfile bool
+
+func (_ ConfigScope) CPUProfilerConfig() (
+	enable EnableCPUProfile,
+	m ConfigMap,
+) {
+	enable = false
+	m = ConfigMap{
+		"EnableCPUProfile": enable,
+	}
+	return
+}
+
+func (_ ExecuteScope) CPUProfile(
+	enable EnableCPUProfile,
+) Operators {
+	if !enable {
+		return nil
+	}
+	return Operators{
+		NewCPUProfiler("cpu-profile"),
+	}
+}

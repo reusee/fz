@@ -27,7 +27,7 @@ func TestKV(t *testing.T) {
 		},
 	})
 
-	// configs
+	// provide configs
 	configDefs = append(configDefs, func() (
 		maxClients MaxClients,
 		m fz.ConfigMap,
@@ -40,6 +40,13 @@ func TestKV(t *testing.T) {
 	})
 
 	configScope := global.Fork(configDefs...)
+
+	// overwrite fz configs
+	configScope = configScope.Fork(
+		func() fz.EnableCPUProfile {
+			return true
+		},
+	)
 
 	executeDefs := dscope.Methods(new(fz.ExecuteScope))
 	executeDefs = append(executeDefs, func(
@@ -80,14 +87,11 @@ func TestKV(t *testing.T) {
 
 	// operators
 	executeDefs = append(executeDefs, &fz.Operators{
-		// ad-hoc
 		fz.Operator{
 			AfterStop: func() {
 				pt("test done\n")
 			},
 		},
-		// cpu profile
-		fz.NewCPUProfiler("cpu-profile"),
 	})
 
 	executeScope := configScope.Fork(executeDefs...)
