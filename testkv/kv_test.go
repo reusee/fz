@@ -1,8 +1,11 @@
 package testkv
 
 import (
+	"bytes"
 	"fmt"
 	"math/rand"
+	"os"
+	"sync/atomic"
 	"testing"
 
 	"github.com/reusee/dscope"
@@ -55,6 +58,25 @@ func TestKV(t *testing.T) {
 		},
 	)
 
+	// config write
+	var writeConfig fz.WriteConfig
+	configScope.Assign(&writeConfig)
+	f, err := os.Create("config.xml")
+	ce(err)
+	ce(writeConfig(f))
+	ce(f.Close())
+
+	// config read
+	var readConfig fz.ReadConfig
+	configScope.Assign(&readConfig)
+	content, err := os.ReadFile("config.xml")
+	ce(err)
+	defs, err := readConfig(bytes.NewReader(content))
+	ce(err)
+	configScope = configScope.Fork(defs...)
+
+	var kv *KV
+
 	executeDefs := dscope.Methods(new(fz.ExecuteScope))
 	executeDefs = append(executeDefs, func(
 		maxClients MaxClients,
@@ -63,8 +85,6 @@ func TestKV(t *testing.T) {
 		stop fz.Stop,
 		do fz.Do,
 	) {
-
-		var kv *KV
 
 		// Start
 		start = func() error {
@@ -100,7 +120,7 @@ func TestKV(t *testing.T) {
 	executeDefs = append(executeDefs, &fz.Operators{
 		fz.Operator{
 			AfterStop: func() {
-				pt("test done\n")
+				pt("test done, %d kv operations\n", atomic.LoadInt64(&kv.numOps))
 			},
 		},
 	})
@@ -109,17 +129,18 @@ func TestKV(t *testing.T) {
 
 	executeScope.Call(func(
 		execute fz.Execute,
-		writeConfig fz.WriteConfig,
 	) {
 		ce(execute())
-
-		// display config file
-		//ce(writeConfig(os.Stdout))
 	})
 
 }
 
 type MaxClients int
+
+func init() {
+	fz.RegisterAction(ActionSet{})
+	fz.RegisterAction(ActionGet{})
+}
 
 type ActionSet struct {
 	Key   any

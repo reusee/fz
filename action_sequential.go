@@ -57,6 +57,7 @@ func (s *SequentialAction) UnmarshalXML(d *xml.Decoder, start xml.StartElement) 
 			err = nil
 			break
 		}
+		ce(err)
 		s.Actions = append(s.Actions, action)
 	}
 

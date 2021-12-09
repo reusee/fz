@@ -1,10 +1,14 @@
 package testkv
 
-import "sync"
+import (
+	"sync"
+	"sync/atomic"
+)
 
 type KV struct {
-	kv  sync.Map
-	sem chan struct{}
+	kv     sync.Map
+	sem    chan struct{}
+	numOps int64
 }
 
 func NewKV(
@@ -21,6 +25,7 @@ func (k *KV) Set(key any, value any) {
 		<-k.sem
 	}()
 	k.kv.Store(key, value)
+	atomic.AddInt64(&k.numOps, 1)
 }
 
 func (k *KV) Get(key any) (value any) {
@@ -29,5 +34,6 @@ func (k *KV) Get(key any) (value any) {
 		<-k.sem
 	}()
 	value, _ = k.kv.Load(key)
+	atomic.AddInt64(&k.numOps, 1)
 	return
 }

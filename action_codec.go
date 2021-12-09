@@ -24,7 +24,7 @@ func RegisterAction(value any) {
 	registeredActionTypes.Store(name, t)
 }
 
-var ErrUnknownAction = errors.New("unknown action")
+var ErrActionNotRegistered = errors.New("action not registered")
 
 func unmarshalAction(d *xml.Decoder, target *Action) (err error) {
 
@@ -40,7 +40,7 @@ func unmarshalAction(d *xml.Decoder, target *Action) (err error) {
 	if !ok {
 		return we.With(
 			e4.Info("action: %s", data.XMLName.Local),
-		)(ErrUnknownAction)
+		)(ErrActionNotRegistered)
 	}
 	t := v.(reflect.Type)
 
