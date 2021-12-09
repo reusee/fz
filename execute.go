@@ -3,15 +3,15 @@ package fz
 //TODO
 type ProgramID string
 
-type Run func() error
+type Execute func() error
 
-func (_ ExecuteScope) Run(
+func (_ ExecuteScope) Execute(
 	start Start,
 	stop Stop,
 	do Do,
 	testAction TestAction,
 	checkers Checkers,
-) Run {
+) Execute {
 	return func() (err error) {
 		defer he(&err)
 
