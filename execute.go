@@ -2,8 +2,11 @@ package fz
 
 import "github.com/reusee/dscope"
 
-//TODO
-type ProgramID string
+type (
+	Start func() error
+	Stop  func() error
+	Do    func(action Action) error
+)
 
 type Execute func() error
 
