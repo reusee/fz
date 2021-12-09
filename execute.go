@@ -10,38 +10,47 @@ func (_ ExecuteScope) Execute(
 	stop Stop,
 	do Do,
 	testAction TestAction,
-	checkers Checkers,
+	ops Operators,
 ) Execute {
 	return func() (err error) {
 		defer he(&err)
 
-		for _, checker := range checkers {
-			if checker.BeforeStart != nil {
-				ce(checker.BeforeStart())
+		for _, op := range ops {
+			if op.BeforeStart != nil {
+				ce(op.BeforeStart())
 			}
 		}
 
+		if start == nil {
+			panic("Start not provided")
+		}
 		ce(start())
 
-		for _, checker := range checkers {
-			if checker.BeforeDo != nil {
-				ce(checker.BeforeDo())
+		for _, op := range ops {
+			if op.BeforeDo != nil {
+				ce(op.BeforeDo())
 			}
 		}
 
+		if do == nil {
+			panic("Do not provided")
+		}
 		//TODO run testAction
 
-		for _, checker := range checkers {
-			if checker.AfterDo != nil {
-				ce(checker.AfterDo())
+		for _, op := range ops {
+			if op.AfterDo != nil {
+				ce(op.AfterDo())
 			}
 		}
 
+		if stop == nil {
+			panic("Stop not provided")
+		}
 		ce(stop())
 
-		for _, checker := range checkers {
-			if checker.AfterStop != nil {
-				ce(checker.AfterStop())
+		for _, op := range ops {
+			if op.AfterStop != nil {
+				ce(op.AfterStop())
 			}
 		}
 

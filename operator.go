@@ -6,17 +6,17 @@ import (
 	"github.com/reusee/dscope"
 )
 
-type Checker struct {
+type Operator struct {
 	BeforeStart func() error
 	BeforeDo    func() error
 	AfterDo     func() error
 	AfterStop   func() error
 }
 
-type Checkers []Checker
+type Operators []Operator
 
-var _ dscope.Reducer = Checkers{}
+var _ dscope.Reducer = Operators{}
 
-func (c Checkers) Reduce(_ dscope.Scope, vs []reflect.Value) reflect.Value {
+func (c Operators) Reduce(_ dscope.Scope, vs []reflect.Value) reflect.Value {
 	return dscope.Reduce(vs)
 }
