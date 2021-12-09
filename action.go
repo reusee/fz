@@ -21,10 +21,6 @@ func (_ ActionGenerators) Reduce(_ dscope.Scope, vs []reflect.Value) reflect.Val
 	return dscope.Reduce(vs)
 }
 
-func (_ ConfigScope) ActionGenerators() ActionGenerators {
-	return nil
-}
-
 type TestAction struct {
 	Action Action
 }
@@ -47,6 +43,9 @@ func (_ ConfigScope) DefaultAction(
 	action TestAction,
 	m ConfigMap,
 ) {
+	if len(generators) == 0 {
+		panic("no ActionGenerators provided")
+	}
 	action.Action = RandomActionTree(generators, 1024)
 	m = ConfigMap{
 		"TestAction": action,

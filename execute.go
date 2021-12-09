@@ -1,5 +1,8 @@
 package fz
 
+//TODO
+type ProgramID string
+
 type Run func() error
 
 func (_ ExecuteScope) Run(
