@@ -5,7 +5,7 @@ import (
 	"runtime/pprof"
 )
 
-func NewCPUProfiler(filename string) Operator {
+func SaveCPUProfile(filename string) Operator {
 	var f *os.File
 	return Operator{
 		BeforeStart: func() {
@@ -48,6 +48,6 @@ func (_ ExecuteScope) CPUProfile(
 		return nil
 	}
 	return Operators{
-		NewCPUProfiler("cpu-profile"),
+		SaveCPUProfile("cpu-profile"),
 	}
 }

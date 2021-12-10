@@ -2,7 +2,7 @@ package fz
 
 import "os"
 
-func SaveConfigToFile(filename string) Operator {
+func SaveConfig(filename string) Operator {
 	return Operator{
 		AfterStop: func(
 			writeConfig WriteConfig,
