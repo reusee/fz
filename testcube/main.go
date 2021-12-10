@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/reusee/dscope"
 	"github.com/reusee/fz"
 )
@@ -33,5 +35,9 @@ func main() {
 	var execute fz.Execute
 	executeScope.Assign(&execute)
 	ce(execute())
+
+	var writeConfig fz.WriteConfig
+	executeScope.Assign(&writeConfig)
+	ce(writeConfig(os.Stdout))
 
 }
