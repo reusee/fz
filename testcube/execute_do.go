@@ -1,10 +1,23 @@
 package main
 
-import "github.com/reusee/fz"
+import (
+	"fmt"
+
+	"github.com/reusee/fz"
+)
 
 func (_ ExecuteScope) Do() fz.Do {
 	return func(action fz.Action) error {
-		//TODO
+
+		switch action := action.(type) {
+
+		case ActionNoOP:
+
+		default:
+			panic(fmt.Errorf("unknown action: %#v", action))
+
+		}
+
 		return nil
 	}
 }

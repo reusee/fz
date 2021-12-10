@@ -34,18 +34,22 @@ func (t *TestAction) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err e
 	return nil
 }
 
-func (_ ConfigScope) DefaultAction(
+func (_ ConfigScope) TestAction(
 	generators ActionGenerators,
 ) (
 	action TestAction,
-	m ConfigMap,
 ) {
 	if len(generators) == 0 {
 		panic("no ActionGenerators provided")
 	}
-	action.Action = RandomActionTree(generators, 1024)
-	m = ConfigMap{
+	action.Action = RandomActionTree(generators, 128)
+	return
+}
+
+func (_ ConfigScope) TestActionConfig(
+	action TestAction,
+) ConfigMap {
+	return ConfigMap{
 		"TestAction": action,
 	}
-	return
 }
