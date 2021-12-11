@@ -9,19 +9,25 @@ import (
 	"github.com/reusee/dscope"
 )
 
-type ConfigMap map[string]any
+type ConfigItems []any
 
-var _ dscope.Reducer = ConfigMap{}
+var _ dscope.Reducer = ConfigItems{}
 
-func (_ ConfigMap) Reduce(_ dscope.Scope, vs []reflect.Value) reflect.Value {
-	ret := make(ConfigMap)
+func (_ ConfigItems) Reduce(_ dscope.Scope, vs []reflect.Value) reflect.Value {
+	var ret ConfigItems
+	names := make(map[string]struct{})
 	for _, value := range vs {
-		m := value.Interface().(ConfigMap)
-		for k, v := range m {
-			if _, ok := ret[k]; ok {
-				panic(fmt.Errorf("duplicated config key: %s", k))
+		items := value.Interface().(ConfigItems)
+		for _, item := range items {
+			name := reflect.TypeOf(item).Name()
+			if name == "" {
+				panic(fmt.Errorf("config item must be named: %T", item))
 			}
-			ret[k] = v
+			if _, ok := names[name]; ok {
+				panic(fmt.Errorf("duplicated config: %s", name))
+			}
+			names[name] = struct{}{}
+			ret = append(ret, item)
 		}
 	}
 	return reflect.ValueOf(ret)
@@ -37,10 +43,8 @@ func (_ ConfigScope) CreateTime() CreatedTime {
 
 func (_ ConfigScope) CreatedTimeConfig(
 	t CreatedTime,
-) ConfigMap {
-	return ConfigMap{
-		"CreatedTime": t,
-	}
+) ConfigItems {
+	return ConfigItems{t}
 }
 
 func (_ ConfigScope) UUID() uuid.UUID {
@@ -49,8 +53,6 @@ func (_ ConfigScope) UUID() uuid.UUID {
 
 func (_ ConfigScope) UUIDConfig(
 	id uuid.UUID,
-) ConfigMap {
-	return ConfigMap{
-		"ConfigID": id,
-	}
+) ConfigItems {
+	return ConfigItems{id}
 }

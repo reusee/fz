@@ -35,10 +35,8 @@ func (_ ConfigScope) EnableCPUProfile() EnableCPUProfile {
 
 func (_ ConfigScope) EnableCPUProfileConfig(
 	enable EnableCPUProfile,
-) ConfigMap {
-	return ConfigMap{
-		"EnableCPUProfile": enable,
-	}
+) ConfigItems {
+	return ConfigItems{enable}
 }
 
 func (_ ExecuteScope) CPUProfile(

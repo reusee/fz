@@ -48,10 +48,8 @@ func TestKV(t *testing.T) {
 		return 8
 	}, func(
 		maxClients MaxClients,
-	) fz.ConfigMap {
-		return fz.ConfigMap{
-			"MaxClients": maxClients,
-		}
+	) fz.ConfigItems {
+		return fz.ConfigItems{maxClients}
 	})
 
 	configScope := global.Fork(configDefs...)

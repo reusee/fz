@@ -17,8 +17,6 @@ func (_ ConfigScope) CubeConfigTOML() CubeConfigTOML {
 
 func (_ ConfigScope) CubeConfigTOMLMap(
 	t CubeConfigTOML,
-) fz.ConfigMap {
-	return fz.ConfigMap{
-		"CubeConfig": t,
-	}
+) fz.ConfigItems {
+	return fz.ConfigItems{t}
 }

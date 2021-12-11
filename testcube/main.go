@@ -13,7 +13,8 @@ type ConfigOverwriteScope struct{}
 
 type ExecuteScope struct{}
 
-func main() {
+func run() (err error) {
+	defer he(&err)
 
 	globalDefs := dscope.Methods(new(Global))
 	globalDefs = append(globalDefs, dscope.Methods(new(fz.Global))...)
@@ -34,4 +35,9 @@ func main() {
 	executeScope.Assign(&execute)
 	ce(execute())
 
+	return
+}
+
+func main() {
+	run()
 }
