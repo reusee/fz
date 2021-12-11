@@ -1,6 +1,8 @@
 package main
 
-import "github.com/reusee/fz"
+import (
+	"github.com/reusee/fz"
+)
 
 func init() {
 	fz.RegisterAction(ActionNoOP{})

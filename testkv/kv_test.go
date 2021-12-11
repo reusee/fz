@@ -35,6 +35,12 @@ func TestKV(t *testing.T) {
 				},
 			)
 		},
+	}, func(
+		generators fz.ActionGenerators,
+	) fz.MainAction {
+		return fz.MainAction{
+			Action: fz.RandomActionTree(generators, 128),
+		}
 	})
 
 	// provide configs

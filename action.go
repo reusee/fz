@@ -18,13 +18,13 @@ func (_ ActionGenerators) Reduce(_ dscope.Scope, vs []reflect.Value) reflect.Val
 	return dscope.Reduce(vs)
 }
 
-type TestAction struct {
+type MainAction struct {
 	Action Action
 }
 
-var _ xml.Unmarshaler = new(TestAction)
+var _ xml.Unmarshaler = new(MainAction)
 
-func (t *TestAction) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
+func (t *MainAction) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
 	if err := unmarshalAction(d, &t.Action); err != nil {
 		return we(err)
 	}
@@ -34,22 +34,10 @@ func (t *TestAction) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err e
 	return nil
 }
 
-func (_ ConfigScope) TestAction(
-	generators ActionGenerators,
-) (
-	action TestAction,
-) {
-	if len(generators) == 0 {
-		panic("no ActionGenerators provided")
-	}
-	action.Action = RandomActionTree(generators, 128)
-	return
-}
-
-func (_ ConfigScope) TestActionConfig(
-	action TestAction,
+func (_ ConfigScope) MainActionConfig(
+	action MainAction,
 ) ConfigMap {
 	return ConfigMap{
-		"TestAction": action,
+		"MainAction": action,
 	}
 }

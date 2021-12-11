@@ -20,6 +20,12 @@ func TestConfigCodec(t *testing.T) {
 				return Seq()
 			},
 		}
+	}, func(
+		generators ActionGenerators,
+	) MainAction {
+		return MainAction{
+			Action: RandomActionTree(generators, 128),
+		}
 	})
 	scope := dscope.New(configDefs...)
 
@@ -29,7 +35,7 @@ func TestConfigCodec(t *testing.T) {
 		createdTime CreatedTime,
 		id uuid.UUID,
 		scope dscope.Scope,
-		action TestAction,
+		action MainAction,
 	) {
 		buf := new(bytes.Buffer)
 		ce(write(buf))
@@ -41,7 +47,7 @@ func TestConfigCodec(t *testing.T) {
 		loaded.Call(func(
 			createdTime2 CreatedTime,
 			id2 uuid.UUID,
-			action2 TestAction,
+			action2 MainAction,
 		) {
 			if createdTime2 != createdTime {
 				t.Fatal()

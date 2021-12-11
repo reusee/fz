@@ -18,7 +18,7 @@ func (_ ExecuteScope) Execute(
 	start Start,
 	stop Stop,
 	do Do,
-	testAction TestAction,
+	mainAction MainAction,
 	ops Operators,
 	call dscope.Call,
 	doAction DoAction,
@@ -54,7 +54,7 @@ func (_ ExecuteScope) Execute(
 		if do == nil {
 			panic("Do not provided")
 		}
-		ce(doAction(testAction.Action))
+		ce(doAction(mainAction.Action))
 
 		for _, op := range ops {
 			if op.AfterDo != nil {
