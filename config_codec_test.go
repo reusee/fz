@@ -14,17 +14,13 @@ func TestConfigCodec(t *testing.T) {
 	defer he(nil, e4.TestingFatal(t))
 
 	configDefs := dscope.Methods(new(ConfigScope))
-	configDefs = append(configDefs, func() ActionGenerators {
-		return ActionGenerators{
-			func() Action {
-				return Seq()
-			},
-		}
-	}, func(
-		generators ActionGenerators,
-	) MainAction {
+	configDefs = append(configDefs, func() MainAction {
 		return MainAction{
-			Action: RandomActionTree(generators, 128),
+			Action: RandomActionTree([]ActionMaker{
+				func() Action {
+					return Seq()
+				},
+			}, 128),
 		}
 	})
 	scope := dscope.New(configDefs...)

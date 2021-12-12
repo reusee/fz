@@ -2,21 +2,12 @@ package fz
 
 import (
 	"encoding/xml"
-	"reflect"
-
-	"github.com/reusee/dscope"
 )
 
 type Action interface {
 }
 
-type ActionGenerators []func() Action
-
-var _ dscope.Reducer = ActionGenerators{}
-
-func (_ ActionGenerators) Reduce(_ dscope.Scope, vs []reflect.Value) reflect.Value {
-	return dscope.Reduce(vs)
-}
+type ActionMaker = func() Action
 
 type MainAction struct {
 	Action Action

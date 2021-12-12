@@ -21,26 +21,22 @@ func TestKV(t *testing.T) {
 	configDefs := dscope.Methods(new(fz.ConfigScope))
 
 	// actions
-	configDefs = append(configDefs, &fz.ActionGenerators{
-		func() fz.Action {
-			key := rand.Int63()
-			value := rand.Int63()
-			return fz.Seq(
-				ActionSet{
-					Key:   key,
-					Value: value,
-				},
-				ActionGet{
-					Key: key,
-				},
-			)
-		},
-	}, func(
-		generators fz.ActionGenerators,
-	) fz.MainAction {
-		return fz.MainAction{
-			Action: fz.RandomActionTree(generators, 128),
-		}
+	configDefs = append(configDefs, &fz.MainAction{
+		Action: fz.RandomActionTree([]fz.ActionMaker{
+			func() fz.Action {
+				key := rand.Int63()
+				value := rand.Int63()
+				return fz.Seq(
+					ActionSet{
+						Key:   key,
+						Value: value,
+					},
+					ActionGet{
+						Key: key,
+					},
+				)
+			},
+		}, 128),
 	})
 
 	// provide configs

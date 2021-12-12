@@ -3,9 +3,7 @@ package fz
 import (
 	"fmt"
 	"reflect"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/reusee/dscope"
 )
 
@@ -31,28 +29,4 @@ func (_ ConfigItems) Reduce(_ dscope.Scope, vs []reflect.Value) reflect.Value {
 		}
 	}
 	return reflect.ValueOf(ret)
-}
-
-// built-ins
-
-type CreatedTime string
-
-func (_ ConfigScope) CreateTime() CreatedTime {
-	return CreatedTime(time.Now().Format(time.RFC3339))
-}
-
-func (_ ConfigScope) CreatedTimeConfig(
-	t CreatedTime,
-) ConfigItems {
-	return ConfigItems{t}
-}
-
-func (_ ConfigScope) UUID() uuid.UUID {
-	return uuid.New()
-}
-
-func (_ ConfigScope) UUIDConfig(
-	id uuid.UUID,
-) ConfigItems {
-	return ConfigItems{id}
 }

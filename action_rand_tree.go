@@ -3,7 +3,7 @@ package fz
 import "math/rand"
 
 func RandomActionTree(
-	generators ActionGenerators,
+	makers []ActionMaker,
 	numActions int,
 ) Action {
 
@@ -34,7 +34,7 @@ func RandomActionTree(
 
 	var actions []Action
 	for i := 0; i < numActions; i++ {
-		actions = append(actions, generators[rand.Intn(len(generators))]())
+		actions = append(actions, makers[rand.Intn(len(makers))]())
 	}
 
 	return split(actions)
