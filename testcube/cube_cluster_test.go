@@ -26,8 +26,8 @@ func TestNewCubeCluster(t *testing.T) {
 	defer he(nil, e4.TestingFatal(t))
 
 	NewTestScope().Call(func(
-		newCluster NewCubeCluster,
-		closeCluster CloseCubeCluster,
+		start StartCubeCluster,
+		stop StopCubeCluster,
 		cleanup fz.Cleanup,
 		tempDir fz.TempDir,
 	) {
@@ -173,7 +173,11 @@ func TestNewCubeCluster(t *testing.T) {
 				},
 
 				Storage: func() config.StorageConfig {
-					kvStorage, err := pebble.NewStorage(fs.PathJoin(string(tempDir), "data"), logger, &crdbpebble.Options{})
+					kvStorage, err := pebble.NewStorage(
+						fs.PathJoin(string(tempDir), fmt.Sprintf("storage-%d", i)),
+						logger,
+						&crdbpebble.Options{},
+					)
 					ce(err)
 					base := kv.NewBaseStorage(kvStorage, fs)
 					dataStorage := kv.NewKVDataStorage(base, simple.NewSimpleKVExecutor(kvStorage))
@@ -199,9 +203,9 @@ func TestNewCubeCluster(t *testing.T) {
 
 		}
 
-		cluster, err := newCluster(configs)
+		cluster, err := start(configs)
 		ce(err)
-		defer closeCluster(cluster)
+		defer stop(cluster)
 
 	})
 }

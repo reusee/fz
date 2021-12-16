@@ -18,14 +18,14 @@ type CubeClusterNode struct {
 	DataStorage storage.DataStorage
 }
 
-type NewCubeCluster func(
+type StartCubeCluster func(
 	nodeConfigs []*config.Config,
 ) (
 	cluster *CubeCluster,
 	err error,
 )
 
-func (_ CubeScope) NewCubeCluster() NewCubeCluster {
+func (_ CubeScope) StartCubeCluster() StartCubeCluster {
 	return func(
 		nodeConfigs []*config.Config,
 	) (
@@ -55,15 +55,19 @@ func (_ CubeScope) NewCubeCluster() NewCubeCluster {
 	}
 }
 
-type CloseCubeCluster func(*CubeCluster) error
+type StopCubeCluster func(*CubeCluster) error
 
-func (_ CubeScope) CloseCubeCluster() CloseCubeCluster {
+func (_ CubeScope) StopCubeCluster() StopCubeCluster {
 	return func(cluster *CubeCluster) (err error) {
 		defer he(&err)
 
 		for _, node := range cluster.Nodes {
-			node.RaftStore.Stop()
-			ce(node.DataStorage.Close())
+			if node.RaftStore != nil {
+				node.RaftStore.Stop()
+			}
+			if node.DataStorage != nil {
+				ce(node.DataStorage.Close())
+			}
 		}
 
 		return
