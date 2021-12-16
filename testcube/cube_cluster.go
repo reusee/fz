@@ -39,7 +39,9 @@ func (_ CubeScope) StartCubeCluster() StartCubeCluster {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
+
 				store.Start()
+
 			}()
 			cluster.Nodes = append(cluster.Nodes, &CubeClusterNode{
 				RaftStore: store,

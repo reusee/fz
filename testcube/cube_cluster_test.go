@@ -10,10 +10,12 @@ import (
 	"time"
 
 	crdbpebble "github.com/cockroachdb/pebble"
+	"github.com/matrixorigin/matrixcube/aware"
 	prophetconfig "github.com/matrixorigin/matrixcube/components/prophet/config"
 	"github.com/matrixorigin/matrixcube/components/prophet/util/typeutil"
 	"github.com/matrixorigin/matrixcube/config"
 	"github.com/matrixorigin/matrixcube/metric"
+	"github.com/matrixorigin/matrixcube/pb/meta"
 	"github.com/matrixorigin/matrixcube/storage"
 	"github.com/matrixorigin/matrixcube/storage/executor/simple"
 	"github.com/matrixorigin/matrixcube/storage/kv"
@@ -52,6 +54,8 @@ func TestNewCubeCluster(t *testing.T) {
 			etcdPeerEndpoints = append(etcdPeerEndpoints, "http://"+net.JoinHostPort("localhost", nextPort()))
 			prophetRPCAddrs = append(prophetRPCAddrs, net.JoinHostPort("127.0.0.1", nextPort()))
 		}
+
+		leaderReady := make(chan struct{})
 
 		var configs []*config.Config
 		for i := 0; i < numNodes; i++ {
@@ -200,6 +204,16 @@ func TestNewCubeCluster(t *testing.T) {
 					}
 				}(),
 
+				Customize: config.CustomizeConfig{
+					CustomShardStateAwareFactory: func() aware.ShardStateAware {
+						return &cubeShardStateAware{
+							becomeLeader: func(_ meta.Shard) {
+								close(leaderReady)
+							},
+						}
+					},
+				},
+
 				Logger: logger,
 
 				Metric: metric.Cfg{
@@ -214,7 +228,64 @@ func TestNewCubeCluster(t *testing.T) {
 
 		cluster, err := start(configs)
 		ce(err)
+
+		<-leaderReady
+
 		defer stop(cluster)
 
 	})
+}
+
+type cubeShardStateAware struct {
+	created         func(meta.Shard)
+	updated         func(meta.Shard)
+	splited         func(meta.Shard)
+	destroyed       func(meta.Shard)
+	becomeLeader    func(meta.Shard)
+	becomeFollower  func(meta.Shard)
+	snapshotApplied func(meta.Shard)
+}
+
+var _ aware.ShardStateAware = new(cubeShardStateAware)
+
+func (c *cubeShardStateAware) Created(shard meta.Shard) {
+	if c.created != nil {
+		c.created(shard)
+	}
+}
+
+func (c *cubeShardStateAware) Updated(shard meta.Shard) {
+	if c.updated != nil {
+		c.updated(shard)
+	}
+}
+
+func (c *cubeShardStateAware) Splited(shard meta.Shard) {
+	if c.splited != nil {
+		c.splited(shard)
+	}
+}
+
+func (c *cubeShardStateAware) Destroyed(shard meta.Shard) {
+	if c.destroyed != nil {
+		c.destroyed(shard)
+	}
+}
+
+func (c *cubeShardStateAware) BecomeLeader(shard meta.Shard) {
+	if c.becomeLeader != nil {
+		c.becomeLeader(shard)
+	}
+}
+
+func (c *cubeShardStateAware) BecomeFollower(shard meta.Shard) {
+	if c.becomeFollower != nil {
+		c.becomeFollower(shard)
+	}
+}
+
+func (c *cubeShardStateAware) SnapshotApplied(shard meta.Shard) {
+	if c.snapshotApplied != nil {
+		c.snapshotApplied(shard)
+	}
 }
