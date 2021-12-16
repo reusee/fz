@@ -8,7 +8,7 @@ import (
 
 func TestUpdateCubeConfig(t *testing.T) {
 	NewTestScope().Call(func(
-		update UpdateCubeConfig,
+		update UpdateCubeConfigTOML,
 	) {
 
 		config, err := update(strings.NewReader(""))

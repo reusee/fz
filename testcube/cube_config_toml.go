@@ -10,9 +10,9 @@ import (
 	"github.com/pelletier/go-toml/v2"
 )
 
-type UpdateCubeConfig func(r io.Reader) (result []byte, err error)
+type UpdateCubeConfigTOML func(r io.Reader) (result []byte, err error)
 
-func (_ CubeScope) UpdateCubeConfig() UpdateCubeConfig {
+func (_ CubeScope) UpdateCubeConfigTOML() UpdateCubeConfigTOML {
 	return func(r io.Reader) (result []byte, err error) {
 		defer he(&err)
 
