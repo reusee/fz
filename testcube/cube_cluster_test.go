@@ -34,6 +34,19 @@ func TestNewCubeCluster(t *testing.T) {
 		stop StopCubeCluster,
 		cleanup fz.Cleanup,
 		tempDir fz.TempDir,
+
+		capacity CubeCapacity,
+		shardGroups CubeShardGroups,
+		maxPeerDownTime CubeMaxPeerDownTime,
+		shardHeartbeatDuration CubeShardHeartbeatDuration,
+		storeHeartbeatDuration CubeStoreHeartbeatDuration,
+		shardSplitCheckDuration CubeShardSplitCheckDuration,
+		shardStateCheckDuration CubeShardStateCheckDuration,
+		compactLogCheckDuration CubeCompactLogCheckDuration,
+		disableShardSplit CubeDisableShardSplit,
+		allowRemoveLeader CubeAllowRemoveLeader,
+		shardCapacityBytes CubeShardCapacityBytes,
+		shardSplitCheckBytes CubeShardSplitCheckBytes,
 	) {
 		defer cleanup()
 
@@ -82,21 +95,21 @@ func TestNewCubeCluster(t *testing.T) {
 				Labels: [][]string{
 					{"node", fmt.Sprintf("%d", i)},
 				},
-				Capacity:           1 * 1024 * 1024 * 1024,
+				Capacity:           typeutil.ByteSize(capacity),
 				UseMemoryAsStorage: false,
-				ShardGroups:        1,
+				ShardGroups:        uint64(shardGroups),
 
 				Replication: config.ReplicationConfig{
-					MaxPeerDownTime:         typeutil.NewDuration(time.Minute * 30),
-					ShardHeartbeatDuration:  typeutil.NewDuration(time.Second * 5),
-					StoreHeartbeatDuration:  typeutil.NewDuration(time.Second * 5),
-					ShardSplitCheckDuration: typeutil.NewDuration(time.Second * 5),
-					ShardStateCheckDuration: typeutil.NewDuration(time.Second),
-					CompactLogCheckDuration: typeutil.NewDuration(time.Second),
-					DisableShardSplit:       false,
-					AllowRemoveLeader:       false,
-					ShardCapacityBytes:      128 * 1024 * 1024,
-					ShardSplitCheckBytes:    128 * 1024 * 1024,
+					MaxPeerDownTime:         typeutil.NewDuration(time.Duration(maxPeerDownTime)),
+					ShardHeartbeatDuration:  typeutil.NewDuration(time.Duration(shardHeartbeatDuration)),
+					StoreHeartbeatDuration:  typeutil.NewDuration(time.Duration(storeHeartbeatDuration)),
+					ShardSplitCheckDuration: typeutil.NewDuration(time.Duration(shardSplitCheckDuration)),
+					ShardStateCheckDuration: typeutil.NewDuration(time.Duration(shardStateCheckDuration)),
+					CompactLogCheckDuration: typeutil.NewDuration(time.Duration(compactLogCheckDuration)),
+					DisableShardSplit:       bool(disableShardSplit),
+					AllowRemoveLeader:       bool(allowRemoveLeader),
+					ShardCapacityBytes:      typeutil.ByteSize(shardCapacityBytes),
+					ShardSplitCheckBytes:    typeutil.ByteSize(shardSplitCheckBytes),
 				},
 
 				Raft: config.RaftConfig{
