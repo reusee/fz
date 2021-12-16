@@ -11,7 +11,7 @@ import (
 	prophetconfig "github.com/matrixorigin/matrixcube/components/prophet/config"
 	"github.com/matrixorigin/matrixcube/components/prophet/util/typeutil"
 	"github.com/matrixorigin/matrixcube/config"
-	"github.com/matrixorigin/matrixcube/raftstore"
+	"github.com/matrixorigin/matrixcube/metric"
 	"github.com/matrixorigin/matrixcube/storage"
 	"github.com/matrixorigin/matrixcube/storage/executor/simple"
 	"github.com/matrixorigin/matrixcube/storage/kv"
@@ -60,25 +60,64 @@ func TestNewCubeCluster(t *testing.T) {
 			fs := vfs.Default
 
 			configs = append(configs, &config.Config{
-				Logger:     logger,
-				FS:         fs,
-				DataPath:   filepath.Join(string(tempDir), "foo"),
 				RaftAddr:   net.JoinHostPort("127.0.0.1", nextPort()),
 				ClientAddr: net.JoinHostPort("127.0.0.1", nextPort()),
+				DataPath:   filepath.Join(string(tempDir), fmt.Sprintf("data-%d", i)),
+				DeployPath: "",
+				Version:    "42",
+				GitHash:    "",
 				Labels: [][]string{
-					{"c", fmt.Sprintf("%d", i)},
+					{"node", fmt.Sprintf("%d", i)},
+				},
+				Capacity:           1 * 1024 * 1024 * 1024,
+				UseMemoryAsStorage: false,
+				ShardGroups:        1,
+
+				Replication: config.ReplicationConfig{
+					MaxPeerDownTime:         typeutil.NewDuration(time.Minute * 30),
+					ShardHeartbeatDuration:  typeutil.NewDuration(time.Second * 5),
+					StoreHeartbeatDuration:  typeutil.NewDuration(time.Second * 5),
+					ShardSplitCheckDuration: typeutil.NewDuration(time.Second * 5),
+					ShardStateCheckDuration: typeutil.NewDuration(time.Second),
+					CompactLogCheckDuration: typeutil.NewDuration(time.Second),
+					DisableShardSplit:       false,
+					AllowRemoveLeader:       false,
+					ShardCapacityBytes:      128 * 1024 * 1024,
+					ShardSplitCheckBytes:    128 * 1024 * 1024,
+				},
+
+				Raft: config.RaftConfig{
+					TickInterval:         typeutil.NewDuration(time.Millisecond * 100),
+					HeartbeatTicks:       10,
+					ElectionTimeoutTicks: 50,
+					MaxSizePerMsg:        8 * 1024 * 1024,
+					MaxInflightMsgs:      256,
+					MaxEntryBytes:        1 * 1024 * 1024,
+					SendRaftBatchSize:    128,
+
+					RaftLog: config.RaftLogConfig{
+						DisableSync:         false,
+						CompactThreshold:    256,
+						MaxAllowTransferLag: 4,
+						ForceCompactCount:   2048,
+						ForceCompactBytes:   128 * 1024 * 1024,
+					},
+				},
+
+				Worker: config.WorkerConfig{
+					RaftEventWorkers:       128,
+					ApplyWorkerCount:       128,
+					SendRaftMsgWorkerCount: 128,
 				},
 
 				Prophet: prophetconfig.Config{
-					Replication: prophetconfig.ReplicationConfig{
-						MaxReplicas: 3,
-					},
-					Schedule: prophetconfig.ScheduleConfig{
-						EnableJointConsensus: true,
-					},
-					Name:        fmt.Sprintf("node-%d", i),
-					RPCAddr:     prophetRPCAddrs[i],
-					StorageNode: true,
+					Name:       fmt.Sprintf("prophet-%d", i),
+					DataDir:    filepath.Join(string(tempDir), fmt.Sprintf("prophet-%d", i)),
+					RPCAddr:    prophetRPCAddrs[i],
+					RPCTimeout: typeutil.NewDuration(time.Second * 32),
+
+					StorageNode:  true,
+					ExternalEtcd: []string{},
 					EmbedEtcd: prophetconfig.EmbedEtcdConfig{
 						Join: func() string {
 							if i == 0 {
@@ -86,28 +125,51 @@ func TestNewCubeCluster(t *testing.T) {
 							}
 							return etcdPeerEndpoints[0]
 						}(),
-						TickInterval:     typeutil.NewDuration(time.Millisecond * 30),
-						ElectionInterval: typeutil.NewDuration(time.Millisecond * 150),
-						ClientUrls:       etcdClientEndpoints[i],
-						PeerUrls:         etcdPeerEndpoints[i],
+						ClientUrls:              etcdClientEndpoints[i],
+						PeerUrls:                etcdPeerEndpoints[i],
+						AdvertiseClientUrls:     "",
+						AdvertisePeerUrls:       "",
+						InitialCluster:          "",
+						InitialClusterState:     "",
+						TickInterval:            typeutil.NewDuration(time.Millisecond * 30),
+						ElectionInterval:        typeutil.NewDuration(time.Millisecond * 150),
+						PreVote:                 true,
+						AutoCompactionMode:      "periodic",
+						AutoCompactionRetention: "1h",
+						QuotaBackendBytes:       1 * 1024 * 1024 * 1024,
 					},
-					DisableStrictReconfigCheck: true,
-				},
 
-				Replication: config.ReplicationConfig{
-					ShardHeartbeatDuration:  typeutil.NewDuration(time.Millisecond * 100),
-					StoreHeartbeatDuration:  typeutil.NewDuration(time.Second),
-					ShardSplitCheckDuration: typeutil.NewDuration(time.Millisecond * 100),
-				},
+					LeaderLease: 8,
 
-				Raft: config.RaftConfig{
-					TickInterval: typeutil.NewDuration(time.Millisecond * 100),
-				},
+					Schedule: prophetconfig.ScheduleConfig{
+						MaxSnapshotCount:              3,
+						MaxPendingPeerCount:           16,
+						MaxMergeResourceSize:          128 * 1024 * 1024,
+						MaxMergeResourceKeys:          16,
+						SplitMergeInterval:            typeutil.NewDuration(time.Minute),
+						EnableOneWayMerge:             true,
+						EnableCrossTableMerge:         true,
+						PatrolResourceInterval:        typeutil.NewDuration(time.Minute),
+						MaxContainerDownTime:          typeutil.NewDuration(time.Minute),
+						LeaderScheduleLimit:           4,
+						LeaderSchedulePolicy:          "count",
+						ResourceScheduleLimit:         2048,
+						ReplicaScheduleLimit:          64,
+						MergeScheduleLimit:            128,
+						HotResourceScheduleLimit:      128,
+						HotResourceCacheHitsThreshold: 128,
+						TolerantSizeRatio:             0.8,
+						LowSpaceRatio:                 0.8,
+						HighSpaceRatio:                0.2,
+						EnableJointConsensus:          true,
+						// ... TODO
 
-				Worker: config.WorkerConfig{
-					RaftEventWorkers:       1,
-					ApplyWorkerCount:       1,
-					SendRaftMsgWorkerCount: 1,
+					},
+
+					Replication: prophetconfig.ReplicationConfig{
+						MaxReplicas:          3,
+						EnablePlacementRules: true,
+					},
 				},
 
 				Storage: func() config.StorageConfig {
@@ -125,7 +187,14 @@ func TestNewCubeCluster(t *testing.T) {
 					}
 				}(),
 
-				Test: config.TestConfig{},
+				Logger: logger,
+
+				Metric: metric.Cfg{
+					Addr:     "",
+					Interval: 0,
+				},
+
+				FS: fs,
 			})
 
 		}
@@ -133,29 +202,6 @@ func TestNewCubeCluster(t *testing.T) {
 		cluster, err := newCluster(configs)
 		ce(err)
 		defer closeCluster(cluster)
-
-	})
-}
-
-func TestCubeTestCluster(t *testing.T) {
-	defer he(nil, e4.TestingFatal(t))
-
-	NewCubeScope(
-		NewConfigScope(
-			NewGlobalScope(),
-		),
-	).Call(func() {
-
-		cluster := raftstore.NewTestClusterStore(t,
-			raftstore.WithTestClusterNodeCount(3),
-			raftstore.DiskTestCluster,
-		)
-		cluster.Start()
-		defer cluster.Stop()
-
-		cluster.WaitShardByCountPerNode(1, time.Second*10)
-		cluster.WaitLeadersByCount(1, time.Second*10)
-		cluster.CheckShardCount(1)
 
 	})
 }
