@@ -3,11 +3,14 @@ module github.com/reusee/fz
 go 1.18
 
 require (
+	github.com/cockroachdb/pebble v0.0.0-20210503173641-1387689d3d7c
 	github.com/google/uuid v1.3.0
 	github.com/matrixorigin/matrixcube v0.0.0-20211212135742-0c643ca5419a
+	github.com/pelletier/go-toml/v2 v2.0.0-beta.4
 	github.com/reusee/dscope v0.0.0-20211215151013-c90a02704379
 	github.com/reusee/e4 v0.0.0-20211111112921-a1e3637d4313
 	github.com/reusee/sb v0.0.0-20211125083700-4a062b9889a2
+	go.uber.org/zap v1.18.1
 )
 
 require (
@@ -20,7 +23,6 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/cockroachdb/errors v1.8.2 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20190617123548-eb05cc24525f // indirect
-	github.com/cockroachdb/pebble v0.0.0-20210503173641-1387689d3d7c // indirect
 	github.com/cockroachdb/redact v1.0.8 // indirect
 	github.com/cockroachdb/sentry-go v0.6.1-cockroachdb.2 // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
@@ -67,7 +69,7 @@ require (
 	github.com/sirupsen/logrus v1.7.0 // indirect
 	github.com/soheilhy/cmux v0.1.5 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/stretchr/testify v1.7.0 // indirect
+	github.com/stretchr/testify v1.7.1-0.20210427113832-6241f9ab9942 // indirect
 	github.com/tklauser/go-sysconf v0.3.9 // indirect
 	github.com/tklauser/numcpus v0.3.0 // indirect
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20201229170055-e5319fda7802 // indirect
@@ -93,7 +95,6 @@ require (
 	go.opentelemetry.io/proto/otlp v0.7.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
-	go.uber.org/zap v1.18.1 // indirect
 	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0 // indirect
 	golang.org/x/exp v0.0.0-20200513190911-00229845015e // indirect
 	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4 // indirect
