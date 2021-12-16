@@ -22,13 +22,3 @@ func run() (err error) {
 func main() {
 	run()
 }
-
-func NewTestScope() Scope {
-	return NewExecuteScope(
-		NewCubeScope(
-			NewConfigScope(
-				NewGlobalScope(),
-			),
-		),
-	)
-}

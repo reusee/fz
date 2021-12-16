@@ -5,11 +5,11 @@ go 1.18
 require (
 	github.com/cockroachdb/pebble v0.0.0-20210503173641-1387689d3d7c
 	github.com/google/uuid v1.3.0
-	github.com/matrixorigin/matrixcube v0.0.0-20211212135742-0c643ca5419a
+	github.com/matrixorigin/matrixcube v0.0.0-20211216054952-2df76a3e4a65
 	github.com/pelletier/go-toml/v2 v2.0.0-beta.4
 	github.com/reusee/dscope v0.0.0-20211215151013-c90a02704379
 	github.com/reusee/e4 v0.0.0-20211111112921-a1e3637d4313
-	github.com/reusee/sb v0.0.0-20211125083700-4a062b9889a2
+	github.com/reusee/sb v0.0.0-20211214142515-c9cbed185b71
 	go.uber.org/zap v1.18.1
 )
 
@@ -36,7 +36,7 @@ require (
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/golang/snappy v0.0.2-0.20190904063534-ff6b7dc882cf // indirect
+	github.com/golang/snappy v0.0.3 // indirect
 	github.com/google/btree v1.0.1 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
@@ -64,7 +64,7 @@ require (
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.26.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
-	github.com/reusee/pr v0.0.0-20211003125556-3e6e9c7537ae // indirect
+	github.com/reusee/pr v0.0.0-20211128075657-2a34fce9bf06 // indirect
 	github.com/shirou/gopsutil/v3 v3.21.10 // indirect
 	github.com/sirupsen/logrus v1.7.0 // indirect
 	github.com/soheilhy/cmux v0.1.5 // indirect

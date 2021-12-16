@@ -186,8 +186,9 @@ github.com/golang/protobuf v1.5.1/go.mod h1:DopwsBzvsk0Fs44TXzsVbJyPhcCPeIwnvohx
 github.com/golang/protobuf v1.5.2 h1:ROPKBNFfQgOUMifHyP+KYbvpjbdoFNs+aK7DXlji0Tw=
 github.com/golang/protobuf v1.5.2/go.mod h1:XVQd3VNwM+JqD3oG2Ue2ip4fOMUkwXdXDdiuN0vRsmY=
 github.com/golang/snappy v0.0.1/go.mod h1:/XxbfmMg8lxefKM7IXC3fBNl/7bRcc72aCRzEWrmP2Q=
-github.com/golang/snappy v0.0.2-0.20190904063534-ff6b7dc882cf h1:gFVkHXmVAhEbxZVDln5V9GKrLaluNoFHDbrZwAWZgws=
 github.com/golang/snappy v0.0.2-0.20190904063534-ff6b7dc882cf/go.mod h1:/XxbfmMg8lxefKM7IXC3fBNl/7bRcc72aCRzEWrmP2Q=
+github.com/golang/snappy v0.0.3 h1:fHPg5GQYlCeLIPB9BZqMVR5nR9A+IM5zcgeTdjMYmLA=
+github.com/golang/snappy v0.0.3/go.mod h1:/XxbfmMg8lxefKM7IXC3fBNl/7bRcc72aCRzEWrmP2Q=
 github.com/gomodule/redigo v1.7.1-0.20190724094224-574c33c3df38/go.mod h1:B4C85qUVwatsJoIUNIfCRsp7qO0iAmpGFZ4EELWSbC4=
 github.com/google/btree v0.0.0-20180813153112-4030bb1f1f0c/go.mod h1:lNA+9X1NB3Zf8V7Ke586lFgjr2dZNuvo3lPJSGZ5JPQ=
 github.com/google/btree v1.0.0/go.mod h1:lNA+9X1NB3Zf8V7Ke586lFgjr2dZNuvo3lPJSGZ5JPQ=
@@ -310,8 +311,8 @@ github.com/magiconair/properties v1.8.0/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czP
 github.com/magiconair/properties v1.8.1/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=
 github.com/matrixorigin/etcd/raft/v3 v3.5.1-0.20210824030015-8e8fdd5cd251 h1:BW05o8Fa/VS7QMKYEOtQ69Qy2mZXzfZWeprn7MnRMzo=
 github.com/matrixorigin/etcd/raft/v3 v3.5.1-0.20210824030015-8e8fdd5cd251/go.mod h1:UFOHSIvO/nKwd4lhkwabrTD3cqW5yVyYYf/KlD00Szc=
-github.com/matrixorigin/matrixcube v0.0.0-20211212135742-0c643ca5419a h1:QMXVv6eSXM71+wj2+Xo1gom+b5PB3h1mUQ+OuCco7os=
-github.com/matrixorigin/matrixcube v0.0.0-20211212135742-0c643ca5419a/go.mod h1:5xrn3BfKKYJw9rDwO5E/RwWg0wPE3H8wnQyjpwIhyYk=
+github.com/matrixorigin/matrixcube v0.0.0-20211216054952-2df76a3e4a65 h1:BKfpGFJKOpaubrxKXkjw9mlSQScXNlLd2knJSBOiAyQ=
+github.com/matrixorigin/matrixcube v0.0.0-20211216054952-2df76a3e4a65/go.mod h1:5xrn3BfKKYJw9rDwO5E/RwWg0wPE3H8wnQyjpwIhyYk=
 github.com/mattn/go-colorable v0.0.9/go.mod h1:9vuHe8Xs5qXnSaW/c/ABM9alt+Vo+STaOChaDxuIBZU=
 github.com/mattn/go-colorable v0.1.2/go.mod h1:U0ppj6V5qS13XJ6of8GYAs25YV2eR4EVcfRqFIhoBtE=
 github.com/mattn/go-isatty v0.0.3/go.mod h1:M+lRXTBqGeGNdLjl/ufCoiOlB5xdOkqRJdNxMWT7Zi4=
@@ -404,11 +405,11 @@ github.com/reusee/e4 v0.0.0-20211111112921-a1e3637d4313 h1:NdolWZRwyEnTsDfOy+bjF
 github.com/reusee/e4 v0.0.0-20211111112921-a1e3637d4313/go.mod h1:tn7INLQH/YwWai6I0MV227/HgZgagrroPgzfUTLV8No=
 github.com/reusee/e4qa v0.0.0-20210413061912-3faa8fbddd5d h1:KCtarNB893QCZu623Bq6hv2K+X9UPt8sHTh7MReSLt4=
 github.com/reusee/pa v0.0.0-20210520023210-223bb0bf8859 h1:O9D09CNGaoSUf6AXzucwsWg7nq5KVDZYlQxiq/yLaTY=
-github.com/reusee/pr v0.0.0-20211003125556-3e6e9c7537ae h1:AfgeMVy4r4MZbNfwdA3BzVgbFCCXTJYS16DpDrcd/4g=
-github.com/reusee/pr v0.0.0-20211003125556-3e6e9c7537ae/go.mod h1:fSOMkLHlAN656Dsoao9Wwix95HuXevvNA+FnNm9tdhE=
+github.com/reusee/pr v0.0.0-20211128075657-2a34fce9bf06 h1:o/HZdozp337VIFIPM9vuCSJ8sGrS9sLcLZ/gZKQ76RY=
+github.com/reusee/pr v0.0.0-20211128075657-2a34fce9bf06/go.mod h1:fSOMkLHlAN656Dsoao9Wwix95HuXevvNA+FnNm9tdhE=
 github.com/reusee/qa v0.0.0-20210413131534-5cab38434e4a h1:IOyuRFrJXvfCoicz853kgaXF70+r1xknNyMPUUOzfoM=
-github.com/reusee/sb v0.0.0-20211125083700-4a062b9889a2 h1:osTxc3tuQ7iTnsK7RTb9h3K70p1GaiXbBKikeGoWEPY=
-github.com/reusee/sb v0.0.0-20211125083700-4a062b9889a2/go.mod h1:UOd+YYBZWwAl2BCO2NVkcOChmakRoTy37D0Qzb5No+U=
+github.com/reusee/sb v0.0.0-20211214142515-c9cbed185b71 h1:5akUe4UfefyPTIxpdX7UFhjXQZJgPkkYTZWd/lOyvSQ=
+github.com/reusee/sb v0.0.0-20211214142515-c9cbed185b71/go.mod h1:TrGksFp53KnL5e+b3SzDltvcYxIXaayvUIJojSjVH9U=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/rogpeppe/fastuuid v1.2.0/go.mod h1:jVj6XXZzXRy/MSR5jhDC/2q6DgLz+nrA6LYCDYWNEvQ=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=

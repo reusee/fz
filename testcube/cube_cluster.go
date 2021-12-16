@@ -5,7 +5,6 @@ import (
 
 	"github.com/matrixorigin/matrixcube/config"
 	"github.com/matrixorigin/matrixcube/raftstore"
-	"github.com/matrixorigin/matrixcube/storage"
 )
 
 type CubeCluster struct {
@@ -13,9 +12,7 @@ type CubeCluster struct {
 }
 
 type CubeClusterNode struct {
-	RaftStore   raftstore.Store
-	Aware       any //TODO
-	DataStorage storage.DataStorage
+	RaftStore raftstore.Store
 }
 
 type StartCubeCluster func(
@@ -62,12 +59,7 @@ func (_ CubeScope) StopCubeCluster() StopCubeCluster {
 		defer he(&err)
 
 		for _, node := range cluster.Nodes {
-			if node.RaftStore != nil {
-				node.RaftStore.Stop()
-			}
-			if node.DataStorage != nil {
-				ce(node.DataStorage.Close())
-			}
+			node.RaftStore.Stop()
 		}
 
 		return
