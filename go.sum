@@ -397,6 +397,8 @@ github.com/prometheus/tsdb v0.7.1/go.mod h1:qhTCs0VvXwvX/y3TZrWD7rabWM+ijKTux40T
 github.com/rainycape/unidecode v0.0.0-20150907023854-cb7f23ec59be/go.mod h1:MIDFMn7db1kT65GmV94GzpX9Qdi7N/pQlwb+AN8wh+Q=
 github.com/reusee/dscope v0.0.0-20211206083912-472f1270abc8 h1:3HFQsF62yYTr/zHzEvdmmZN5s8Z4vcZxzh2FwRS3Y6I=
 github.com/reusee/dscope v0.0.0-20211206083912-472f1270abc8/go.mod h1:6/3UYy/Wh9bHV9+DjF3yP+CHiPqALKT1DPIu5o1WAdE=
+github.com/reusee/dscope v0.0.0-20211215151013-c90a02704379 h1:ZVVnqYBogcIKuF+U0wcD/bAfTbX0jZ6yJq+DCFmiAwI=
+github.com/reusee/dscope v0.0.0-20211215151013-c90a02704379/go.mod h1:6/3UYy/Wh9bHV9+DjF3yP+CHiPqALKT1DPIu5o1WAdE=
 github.com/reusee/e4 v0.0.0-20210823014223-b02406cf2483/go.mod h1:tn7INLQH/YwWai6I0MV227/HgZgagrroPgzfUTLV8No=
 github.com/reusee/e4 v0.0.0-20211111112921-a1e3637d4313 h1:NdolWZRwyEnTsDfOy+bjFhm9jUH6HMgXU5kKbp9v5js=
 github.com/reusee/e4 v0.0.0-20211111112921-a1e3637d4313/go.mod h1:tn7INLQH/YwWai6I0MV227/HgZgagrroPgzfUTLV8No=

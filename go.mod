@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/google/uuid v1.3.0
 	github.com/matrixorigin/matrixcube v0.0.0-20211212135742-0c643ca5419a
-	github.com/reusee/dscope v0.0.0-20211206083912-472f1270abc8
+	github.com/reusee/dscope v0.0.0-20211215151013-c90a02704379
 	github.com/reusee/e4 v0.0.0-20211111112921-a1e3637d4313
 	github.com/reusee/sb v0.0.0-20211125083700-4a062b9889a2
 )
