@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -55,8 +57,15 @@ func TestNewCubeCluster(t *testing.T) {
 		for i := 0; i < numNodes; i++ {
 			i := i
 
-			logger, err := zap.NewDevelopment()
+			loggerConfigStr := `{
+        "level": "fatal",
+        "encoding": "json"
+      }`
+			var loggerConfig zap.Config
+			ce(json.NewDecoder(strings.NewReader(loggerConfigStr)).Decode(&loggerConfig))
+			logger, err := loggerConfig.Build()
 			ce(err)
+			defer logger.Sync()
 			fs := vfs.Default
 
 			configs = append(configs, &config.Config{
