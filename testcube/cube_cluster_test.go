@@ -85,10 +85,10 @@ func TestNewCubeCluster(t *testing.T) {
 						conf.Prophet.DataDir = filepath.Join(string(tempDir), fmt.Sprintf("prophet-%d", i))
 						conf.Prophet.RPCAddr = net.JoinHostPort("127.0.0.1", nextPort())
 						if i > 0 {
-							conf.Prophet.EmbedEtcd.Join = etcdPeerEndpoints[0]
+							conf.Prophet.EmbedEtcd.Join = prophetEtcdEndpoints[0]
 						}
 						conf.Prophet.EmbedEtcd.ClientUrls = "http://" + net.JoinHostPort("localhost", nextPort())
-						conf.Prophet.EmbedEtcd.PeerUrls = etcdPeerEndpoints[i]
+						conf.Prophet.EmbedEtcd.PeerUrls = prophetEtcdEndpoints[i]
 
 						conf.Storage = func() config.StorageConfig {
 							kvStorage, err := pebble.NewStorage(
