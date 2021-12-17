@@ -6,6 +6,7 @@ import (
 	"net"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 
 	crdbpebble "github.com/cockroachdb/pebble"
@@ -26,11 +27,9 @@ func TestNewCubeCluster(t *testing.T) {
 	defer he(nil, e4.TestingFatal(t))
 
 	NewTestScope().Call(func(
-		start StartCubeCluster,
-		stop StopCubeCluster,
+		scope Scope,
 		cleanup fz.Cleanup,
 		tempDir fz.TempDir,
-		newConfig NewCubeConfig,
 	) {
 		defer cleanup()
 
@@ -52,82 +51,98 @@ func TestNewCubeCluster(t *testing.T) {
 			prophetRPCAddrs = append(prophetRPCAddrs, net.JoinHostPort("127.0.0.1", nextPort()))
 		}
 
-		leaderReady := make(chan struct{})
-		created := make(chan struct{})
+		cond := sync.NewCond(new(sync.Mutex))
+		numCreated := 0
+		numLeaderReady := 0
 
-		var configs []*config.Config
 		for i := 0; i < numNodes; i++ {
 			i := i
 
-			loggerConfigStr := `{
-        "level": "debug",
-        "encoding": "json"
-      }`
-			var loggerConfig zap.Config
-			ce(json.NewDecoder(strings.NewReader(loggerConfigStr)).Decode(&loggerConfig))
-			logger, err := loggerConfig.Build()
-			ce(err)
-			defer logger.Sync()
-			fs := vfs.Default
+			nodeScope := NewCubeNodeScope(
+				scope,
+				func() CubeNodeID {
+					return CubeNodeID(i)
+				},
+				func() TapCubeConfig {
+					return func(conf CubeConfig) {
+						loggerConfigStr := `{
+              "level": "debug",
+              "encoding": "json"
+            }`
+						var loggerConfig zap.Config
+						ce(json.NewDecoder(strings.NewReader(loggerConfigStr)).Decode(&loggerConfig))
+						logger, err := loggerConfig.Build()
+						ce(err)
+						defer logger.Sync()
+						fs := vfs.Default
 
-			conf := newConfig(i)
+						conf.RaftAddr = net.JoinHostPort("127.0.0.1", nextPort())
+						conf.ClientAddr = net.JoinHostPort("127.0.0.1", nextPort())
+						conf.DataPath = filepath.Join(string(tempDir), fmt.Sprintf("data-%d", i))
+						conf.Logger = logger
+						conf.FS = fs
 
-			conf.RaftAddr = net.JoinHostPort("127.0.0.1", nextPort())
-			conf.ClientAddr = net.JoinHostPort("127.0.0.1", nextPort())
-			conf.DataPath = filepath.Join(string(tempDir), fmt.Sprintf("data-%d", i))
-			conf.Logger = logger
-			conf.FS = fs
+						conf.Prophet.DataDir = filepath.Join(string(tempDir), fmt.Sprintf("prophet-%d", i))
+						conf.Prophet.RPCAddr = prophetRPCAddrs[i]
+						if i > 0 {
+							conf.Prophet.EmbedEtcd.Join = etcdPeerEndpoints[0]
+						}
+						conf.Prophet.EmbedEtcd.ClientUrls = etcdClientEndpoints[i]
+						conf.Prophet.EmbedEtcd.PeerUrls = etcdPeerEndpoints[i]
 
-			conf.Prophet.DataDir = filepath.Join(string(tempDir), fmt.Sprintf("prophet-%d", i))
-			conf.Prophet.RPCAddr = prophetRPCAddrs[i]
-			if i > 0 {
-				conf.Prophet.EmbedEtcd.Join = etcdPeerEndpoints[0]
-			}
-			conf.Prophet.EmbedEtcd.ClientUrls = etcdClientEndpoints[i]
-			conf.Prophet.EmbedEtcd.PeerUrls = etcdPeerEndpoints[i]
+						conf.Storage = func() config.StorageConfig {
+							kvStorage, err := pebble.NewStorage(
+								fs.PathJoin(string(tempDir), fmt.Sprintf("storage-%d", i)),
+								logger,
+								&crdbpebble.Options{},
+							)
+							ce(err)
+							base := kv.NewBaseStorage(kvStorage, fs)
+							dataStorage := kv.NewKVDataStorage(base, simple.NewSimpleKVExecutor(kvStorage))
+							return config.StorageConfig{
+								DataStorageFactory: func(group uint64) storage.DataStorage {
+									return dataStorage
+								},
+								ForeachDataStorageFunc: func(fn func(storage.DataStorage)) {
+									fn(dataStorage)
+								},
+							}
+						}()
 
-			conf.Storage = func() config.StorageConfig {
-				kvStorage, err := pebble.NewStorage(
-					fs.PathJoin(string(tempDir), fmt.Sprintf("storage-%d", i)),
-					logger,
-					&crdbpebble.Options{},
-				)
-				ce(err)
-				base := kv.NewBaseStorage(kvStorage, fs)
-				dataStorage := kv.NewKVDataStorage(base, simple.NewSimpleKVExecutor(kvStorage))
-				return config.StorageConfig{
-					DataStorageFactory: func(group uint64) storage.DataStorage {
-						return dataStorage
-					},
-					ForeachDataStorageFunc: func(fn func(storage.DataStorage)) {
-						fn(dataStorage)
-					},
-				}
-			}()
-
-			conf.Customize = config.CustomizeConfig{
-				CustomShardStateAwareFactory: func() aware.ShardStateAware {
-					return &cubeShardStateAware{
-						created: func(_ meta.Shard) {
-							close(created)
-						},
-						becomeLeader: func(_ meta.Shard) {
-							close(leaderReady)
-						},
+						conf.Customize = config.CustomizeConfig{
+							CustomShardStateAwareFactory: func() aware.ShardStateAware {
+								return &cubeShardStateAware{
+									created: func(_ meta.Shard) {
+										cond.L.Lock()
+										numCreated++
+										cond.L.Unlock()
+										cond.Signal()
+									},
+									becomeLeader: func(_ meta.Shard) {
+										cond.L.Lock()
+										numLeaderReady++
+										cond.L.Unlock()
+										cond.Signal()
+									},
+								}
+							},
+						}
 					}
 				},
-			}
+			)
 
-			configs = append(configs, conf)
+			nodeScope.Call(func(
+				app CubeNodeApplication,
+			) {
+				ce(app.Start())
+			})
 		}
 
-		cluster, err := start(configs)
-		ce(err)
-
-		<-created
-		<-leaderReady
-
-		defer stop(cluster)
+		cond.L.Lock()
+		for numLeaderReady == 0 {
+			cond.Wait()
+		}
+		cond.L.Unlock()
 
 	})
 }
