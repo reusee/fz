@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/cockroachdb/pebble v0.0.0-20210503173641-1387689d3d7c
 	github.com/google/uuid v1.3.0
-	github.com/matrixorigin/matrixcube v0.0.0-20211216054952-2df76a3e4a65
+	github.com/matrixorigin/matrixcube v0.0.0-20211217044609-f3f370f6d7b5
 	github.com/pelletier/go-toml/v2 v2.0.0-beta.4
 	github.com/reusee/dscope v0.0.0-20211215151013-c90a02704379
 	github.com/reusee/e4 v0.0.0-20211111112921-a1e3637d4313

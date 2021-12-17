@@ -53,13 +53,14 @@ func TestNewCubeCluster(t *testing.T) {
 		}
 
 		leaderReady := make(chan struct{})
+		created := make(chan struct{})
 
 		var configs []*config.Config
 		for i := 0; i < numNodes; i++ {
 			i := i
 
 			loggerConfigStr := `{
-        "level": "fatal",
+        "level": "debug",
         "encoding": "json"
       }`
 			var loggerConfig zap.Config
@@ -107,6 +108,9 @@ func TestNewCubeCluster(t *testing.T) {
 			conf.Customize = config.CustomizeConfig{
 				CustomShardStateAwareFactory: func() aware.ShardStateAware {
 					return &cubeShardStateAware{
+						created: func(_ meta.Shard) {
+							close(created)
+						},
 						becomeLeader: func(_ meta.Shard) {
 							close(leaderReady)
 						},
@@ -120,6 +124,7 @@ func TestNewCubeCluster(t *testing.T) {
 		cluster, err := start(configs)
 		ce(err)
 
+		<-created
 		<-leaderReady
 
 		defer stop(cluster)

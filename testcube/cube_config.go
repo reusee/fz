@@ -28,6 +28,9 @@ func (_ CubeScope) NewCubeConfig(
 ) NewCubeConfig {
 
 	return func(i int) *config.Config {
+
+		//TODO more config types
+
 		return &config.Config{
 			DeployPath: "",
 			Version:    "42",
