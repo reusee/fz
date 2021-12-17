@@ -5,6 +5,7 @@ import (
 
 	"github.com/matrixorigin/matrixcube/config"
 	"github.com/matrixorigin/matrixcube/raftstore"
+	"github.com/matrixorigin/matrixcube/server"
 )
 
 type CubeCluster struct {
@@ -12,7 +13,8 @@ type CubeCluster struct {
 }
 
 type CubeClusterNode struct {
-	RaftStore raftstore.Store
+	RaftStore   raftstore.Store
+	Application *server.Application
 }
 
 type StartCubeCluster func(
@@ -36,13 +38,18 @@ func (_ CubeScope) StartCubeCluster() StartCubeCluster {
 
 		for _, config := range nodeConfigs {
 			store := raftstore.NewStore(config)
+
+			app := server.NewApplication(server.Cfg{
+				Store: store,
+			})
+
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-
-				store.Start()
-
+				//store.Start()
+				ce(app.Start())
 			}()
+
 			cluster.Nodes = append(cluster.Nodes, &CubeClusterNode{
 				RaftStore: store,
 			})
