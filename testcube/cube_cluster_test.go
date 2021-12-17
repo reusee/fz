@@ -33,6 +33,7 @@ func TestNewCubeCluster(t *testing.T) {
 	) {
 		defer cleanup()
 
+		// port generator
 		port := int64(54321)
 		nextPort := func() (ret string) {
 			ret = fmt.Sprintf("%d", port)
@@ -40,15 +41,12 @@ func TestNewCubeCluster(t *testing.T) {
 			return
 		}
 
+		// number of nodes in cluster
 		numNodes := 3
 
-		var etcdClientEndpoints []string
-		var etcdPeerEndpoints []string
-		var prophetRPCAddrs []string
+		var prophetEtcdEndpoints []string
 		for i := 0; i < numNodes; i++ {
-			etcdClientEndpoints = append(etcdClientEndpoints, "http://"+net.JoinHostPort("localhost", nextPort()))
-			etcdPeerEndpoints = append(etcdPeerEndpoints, "http://"+net.JoinHostPort("localhost", nextPort()))
-			prophetRPCAddrs = append(prophetRPCAddrs, net.JoinHostPort("127.0.0.1", nextPort()))
+			prophetEtcdEndpoints = append(prophetEtcdEndpoints, "http://"+net.JoinHostPort("localhost", nextPort()))
 		}
 
 		cond := sync.NewCond(new(sync.Mutex))
@@ -65,6 +63,7 @@ func TestNewCubeCluster(t *testing.T) {
 				},
 				func() TapCubeConfig {
 					return func(conf CubeConfig) {
+
 						loggerConfigStr := `{
               "level": "debug",
               "encoding": "json"
@@ -74,20 +73,21 @@ func TestNewCubeCluster(t *testing.T) {
 						logger, err := loggerConfig.Build()
 						ce(err)
 						defer logger.Sync()
+
 						fs := vfs.Default
+						conf.FS = fs
 
 						conf.RaftAddr = net.JoinHostPort("127.0.0.1", nextPort())
 						conf.ClientAddr = net.JoinHostPort("127.0.0.1", nextPort())
 						conf.DataPath = filepath.Join(string(tempDir), fmt.Sprintf("data-%d", i))
 						conf.Logger = logger
-						conf.FS = fs
 
 						conf.Prophet.DataDir = filepath.Join(string(tempDir), fmt.Sprintf("prophet-%d", i))
-						conf.Prophet.RPCAddr = prophetRPCAddrs[i]
+						conf.Prophet.RPCAddr = net.JoinHostPort("127.0.0.1", nextPort())
 						if i > 0 {
 							conf.Prophet.EmbedEtcd.Join = etcdPeerEndpoints[0]
 						}
-						conf.Prophet.EmbedEtcd.ClientUrls = etcdClientEndpoints[i]
+						conf.Prophet.EmbedEtcd.ClientUrls = "http://" + net.JoinHostPort("localhost", nextPort())
 						conf.Prophet.EmbedEtcd.PeerUrls = etcdPeerEndpoints[i]
 
 						conf.Storage = func() config.StorageConfig {
@@ -127,6 +127,7 @@ func TestNewCubeCluster(t *testing.T) {
 								}
 							},
 						}
+
 					}
 				},
 			)
@@ -136,6 +137,7 @@ func TestNewCubeCluster(t *testing.T) {
 			) {
 				ce(app.Start())
 			})
+
 		}
 
 		cond.L.Lock()
