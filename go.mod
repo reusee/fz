@@ -7,7 +7,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/matrixorigin/matrixcube v0.0.0-20211217044609-f3f370f6d7b5
 	github.com/pelletier/go-toml/v2 v2.0.0-beta.4
-	github.com/reusee/dscope v0.0.0-20211215151013-c90a02704379
+	github.com/reusee/dscope v0.0.0-20211217144844-8a5080c711af
 	github.com/reusee/e4 v0.0.0-20211111112921-a1e3637d4313
 	github.com/reusee/sb v0.0.0-20211214142515-c9cbed185b71
 	go.uber.org/zap v1.18.1
