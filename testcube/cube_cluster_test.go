@@ -7,14 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-	"time"
 
 	crdbpebble "github.com/cockroachdb/pebble"
 	"github.com/matrixorigin/matrixcube/aware"
-	prophetconfig "github.com/matrixorigin/matrixcube/components/prophet/config"
-	"github.com/matrixorigin/matrixcube/components/prophet/util/typeutil"
 	"github.com/matrixorigin/matrixcube/config"
-	"github.com/matrixorigin/matrixcube/metric"
 	"github.com/matrixorigin/matrixcube/pb/meta"
 	"github.com/matrixorigin/matrixcube/storage"
 	"github.com/matrixorigin/matrixcube/storage/executor/simple"
@@ -34,6 +30,7 @@ func TestNewCubeCluster(t *testing.T) {
 		stop StopCubeCluster,
 		cleanup fz.Cleanup,
 		tempDir fz.TempDir,
+		newConfig NewCubeConfig,
 
 		capacity CubeCapacity,
 		shardGroups CubeShardGroups,
@@ -85,158 +82,52 @@ func TestNewCubeCluster(t *testing.T) {
 			defer logger.Sync()
 			fs := vfs.Default
 
-			configs = append(configs, &config.Config{
-				RaftAddr:   net.JoinHostPort("127.0.0.1", nextPort()),
-				ClientAddr: net.JoinHostPort("127.0.0.1", nextPort()),
-				DataPath:   filepath.Join(string(tempDir), fmt.Sprintf("data-%d", i)),
-				DeployPath: "",
-				Version:    "42",
-				GitHash:    "",
-				Labels: [][]string{
-					{"node", fmt.Sprintf("%d", i)},
-				},
-				Capacity:           typeutil.ByteSize(capacity),
-				UseMemoryAsStorage: false,
-				ShardGroups:        uint64(shardGroups),
+			conf := newConfig(i)
 
-				Replication: config.ReplicationConfig{
-					MaxPeerDownTime:         typeutil.NewDuration(time.Duration(maxPeerDownTime)),
-					ShardHeartbeatDuration:  typeutil.NewDuration(time.Duration(shardHeartbeatDuration)),
-					StoreHeartbeatDuration:  typeutil.NewDuration(time.Duration(storeHeartbeatDuration)),
-					ShardSplitCheckDuration: typeutil.NewDuration(time.Duration(shardSplitCheckDuration)),
-					ShardStateCheckDuration: typeutil.NewDuration(time.Duration(shardStateCheckDuration)),
-					CompactLogCheckDuration: typeutil.NewDuration(time.Duration(compactLogCheckDuration)),
-					DisableShardSplit:       bool(disableShardSplit),
-					AllowRemoveLeader:       bool(allowRemoveLeader),
-					ShardCapacityBytes:      typeutil.ByteSize(shardCapacityBytes),
-					ShardSplitCheckBytes:    typeutil.ByteSize(shardSplitCheckBytes),
-				},
+			conf.RaftAddr = net.JoinHostPort("127.0.0.1", nextPort())
+			conf.ClientAddr = net.JoinHostPort("127.0.0.1", nextPort())
+			conf.DataPath = filepath.Join(string(tempDir), fmt.Sprintf("data-%d", i))
+			conf.Logger = logger
+			conf.FS = fs
 
-				Raft: config.RaftConfig{
-					TickInterval:         typeutil.NewDuration(time.Millisecond * 100),
-					HeartbeatTicks:       10,
-					ElectionTimeoutTicks: 50,
-					MaxSizePerMsg:        8 * 1024 * 1024,
-					MaxInflightMsgs:      256,
-					MaxEntryBytes:        1 * 1024 * 1024,
-					SendRaftBatchSize:    128,
+			conf.Prophet.DataDir = filepath.Join(string(tempDir), fmt.Sprintf("prophet-%d", i))
+			conf.Prophet.RPCAddr = prophetRPCAddrs[i]
+			if i > 0 {
+				conf.Prophet.EmbedEtcd.Join = etcdPeerEndpoints[0]
+			}
+			conf.Prophet.EmbedEtcd.ClientUrls = etcdClientEndpoints[i]
+			conf.Prophet.EmbedEtcd.PeerUrls = etcdPeerEndpoints[i]
 
-					RaftLog: config.RaftLogConfig{
-						DisableSync:         false,
-						CompactThreshold:    256,
-						MaxAllowTransferLag: 4,
-						ForceCompactCount:   2048,
-						ForceCompactBytes:   128 * 1024 * 1024,
+			conf.Storage = func() config.StorageConfig {
+				kvStorage, err := pebble.NewStorage(
+					fs.PathJoin(string(tempDir), fmt.Sprintf("storage-%d", i)),
+					logger,
+					&crdbpebble.Options{},
+				)
+				ce(err)
+				base := kv.NewBaseStorage(kvStorage, fs)
+				dataStorage := kv.NewKVDataStorage(base, simple.NewSimpleKVExecutor(kvStorage))
+				return config.StorageConfig{
+					DataStorageFactory: func(group uint64) storage.DataStorage {
+						return dataStorage
 					},
-				},
-
-				Worker: config.WorkerConfig{
-					RaftEventWorkers:       128,
-					ApplyWorkerCount:       128,
-					SendRaftMsgWorkerCount: 128,
-				},
-
-				Prophet: prophetconfig.Config{
-					Name:       fmt.Sprintf("prophet-%d", i),
-					DataDir:    filepath.Join(string(tempDir), fmt.Sprintf("prophet-%d", i)),
-					RPCAddr:    prophetRPCAddrs[i],
-					RPCTimeout: typeutil.NewDuration(time.Second * 32),
-
-					StorageNode:  true,
-					ExternalEtcd: []string{},
-					EmbedEtcd: prophetconfig.EmbedEtcdConfig{
-						Join: func() string {
-							if i == 0 {
-								return ""
-							}
-							return etcdPeerEndpoints[0]
-						}(),
-						ClientUrls:              etcdClientEndpoints[i],
-						PeerUrls:                etcdPeerEndpoints[i],
-						AdvertiseClientUrls:     "",
-						AdvertisePeerUrls:       "",
-						InitialCluster:          "",
-						InitialClusterState:     "",
-						TickInterval:            typeutil.NewDuration(time.Millisecond * 30),
-						ElectionInterval:        typeutil.NewDuration(time.Millisecond * 150),
-						PreVote:                 true,
-						AutoCompactionMode:      "periodic",
-						AutoCompactionRetention: "1h",
-						QuotaBackendBytes:       1 * 1024 * 1024 * 1024,
+					ForeachDataStorageFunc: func(fn func(storage.DataStorage)) {
+						fn(dataStorage)
 					},
+				}
+			}()
 
-					LeaderLease: 8,
-
-					Schedule: prophetconfig.ScheduleConfig{
-						MaxSnapshotCount:              3,
-						MaxPendingPeerCount:           16,
-						MaxMergeResourceSize:          128 * 1024 * 1024,
-						MaxMergeResourceKeys:          16,
-						SplitMergeInterval:            typeutil.NewDuration(time.Minute),
-						EnableOneWayMerge:             true,
-						EnableCrossTableMerge:         true,
-						PatrolResourceInterval:        typeutil.NewDuration(time.Minute),
-						MaxContainerDownTime:          typeutil.NewDuration(time.Minute),
-						LeaderScheduleLimit:           4,
-						LeaderSchedulePolicy:          "count",
-						ResourceScheduleLimit:         2048,
-						ReplicaScheduleLimit:          64,
-						MergeScheduleLimit:            128,
-						HotResourceScheduleLimit:      128,
-						HotResourceCacheHitsThreshold: 128,
-						TolerantSizeRatio:             0.8,
-						LowSpaceRatio:                 0.8,
-						HighSpaceRatio:                0.2,
-						EnableJointConsensus:          true,
-						// ... TODO
-
-					},
-
-					Replication: prophetconfig.ReplicationConfig{
-						MaxReplicas:          3,
-						EnablePlacementRules: true,
-					},
-				},
-
-				Storage: func() config.StorageConfig {
-					kvStorage, err := pebble.NewStorage(
-						fs.PathJoin(string(tempDir), fmt.Sprintf("storage-%d", i)),
-						logger,
-						&crdbpebble.Options{},
-					)
-					ce(err)
-					base := kv.NewBaseStorage(kvStorage, fs)
-					dataStorage := kv.NewKVDataStorage(base, simple.NewSimpleKVExecutor(kvStorage))
-					return config.StorageConfig{
-						DataStorageFactory: func(group uint64) storage.DataStorage {
-							return dataStorage
-						},
-						ForeachDataStorageFunc: func(fn func(storage.DataStorage)) {
-							fn(dataStorage)
+			conf.Customize = config.CustomizeConfig{
+				CustomShardStateAwareFactory: func() aware.ShardStateAware {
+					return &cubeShardStateAware{
+						becomeLeader: func(_ meta.Shard) {
+							close(leaderReady)
 						},
 					}
-				}(),
-
-				Customize: config.CustomizeConfig{
-					CustomShardStateAwareFactory: func() aware.ShardStateAware {
-						return &cubeShardStateAware{
-							becomeLeader: func(_ meta.Shard) {
-								close(leaderReady)
-							},
-						}
-					},
 				},
+			}
 
-				Logger: logger,
-
-				Metric: metric.Cfg{
-					Addr:     "",
-					Interval: 0,
-				},
-
-				FS: fs,
-			})
-
+			configs = append(configs, conf)
 		}
 
 		cluster, err := start(configs)
