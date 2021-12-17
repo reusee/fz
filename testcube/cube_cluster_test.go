@@ -31,19 +31,6 @@ func TestNewCubeCluster(t *testing.T) {
 		cleanup fz.Cleanup,
 		tempDir fz.TempDir,
 		newConfig NewCubeConfig,
-
-		capacity CubeCapacity,
-		shardGroups CubeShardGroups,
-		maxPeerDownTime CubeMaxPeerDownTime,
-		shardHeartbeatDuration CubeShardHeartbeatDuration,
-		storeHeartbeatDuration CubeStoreHeartbeatDuration,
-		shardSplitCheckDuration CubeShardSplitCheckDuration,
-		shardStateCheckDuration CubeShardStateCheckDuration,
-		compactLogCheckDuration CubeCompactLogCheckDuration,
-		disableShardSplit CubeDisableShardSplit,
-		allowRemoveLeader CubeAllowRemoveLeader,
-		shardCapacityBytes CubeShardCapacityBytes,
-		shardSplitCheckBytes CubeShardSplitCheckBytes,
 	) {
 		defer cleanup()
 
