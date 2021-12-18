@@ -5,17 +5,17 @@ import (
 	"github.com/reusee/fz"
 )
 
-type ConfigScope struct{}
-
-type ConfigOverwriteScope struct{}
+type ConfigScope func() Scope
 
 func NewConfigScope(parent Scope) Scope {
-	configDefs := dscope.Methods(new(ConfigScope))
-	configDefs = append(configDefs, dscope.Methods(new(fz.ConfigScope))...)
-	configScope := parent.Fork(configDefs...)
-
-	configOverwriteDefs := dscope.Methods(new(ConfigOverwriteScope))
-	configScope = configScope.Fork(configOverwriteDefs...)
-
-	return configScope
+	defs := dscope.Methods(new(ConfigScope))
+	defs = append(defs, dscope.Methods(new(fz.ConfigScope))...)
+	var scope Scope
+	defs = append(defs, func() ConfigScope {
+		return func() Scope {
+			return scope
+		}
+	})
+	scope = parent.Fork(defs...)
+	return scope
 }
