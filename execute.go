@@ -20,8 +20,8 @@ func (_ ExecuteScope) Execute(
 	do Do,
 	mainAction MainAction,
 	ops Operators,
-	call dscope.Call,
 	doAction DoAction,
+	scope dscope.Scope,
 ) Execute {
 	return func() (err error) {
 		defer he(&err)
@@ -29,14 +29,14 @@ func (_ ExecuteScope) Execute(
 		defer func() {
 			for _, op := range ops {
 				if op.Finally != nil {
-					call(op.Finally)
+					scope.Call(op.Finally)
 				}
 			}
 		}()
 
 		for _, op := range ops {
 			if op.BeforeStart != nil {
-				call(op.BeforeStart)
+				scope.Call(op.BeforeStart)
 			}
 		}
 
@@ -47,7 +47,7 @@ func (_ ExecuteScope) Execute(
 
 		for _, op := range ops {
 			if op.BeforeDo != nil {
-				call(op.BeforeDo)
+				scope.Call(op.BeforeDo)
 			}
 		}
 
@@ -58,7 +58,7 @@ func (_ ExecuteScope) Execute(
 
 		for _, op := range ops {
 			if op.AfterDo != nil {
-				call(op.AfterDo)
+				scope.Call(op.AfterDo)
 			}
 		}
 
@@ -69,7 +69,7 @@ func (_ ExecuteScope) Execute(
 
 		for _, op := range ops {
 			if op.AfterStop != nil {
-				call(op.AfterStop)
+				scope.Call(op.AfterStop)
 			}
 		}
 

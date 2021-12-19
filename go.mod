@@ -7,7 +7,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/matrixorigin/matrixcube v0.0.0-20211217044609-f3f370f6d7b5
 	github.com/pelletier/go-toml/v2 v2.0.0-beta.4
-	github.com/reusee/dscope v0.0.0-20211217144844-8a5080c711af
+	github.com/reusee/dscope v0.0.0-20211219082713-dd0b84986107
 	github.com/reusee/e4 v0.0.0-20211111112921-a1e3637d4313
 	github.com/reusee/sb v0.0.0-20211214142515-c9cbed185b71
 	go.uber.org/zap v1.18.1
@@ -64,7 +64,7 @@ require (
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.26.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
-	github.com/reusee/pr v0.0.0-20211128075657-2a34fce9bf06 // indirect
+	github.com/reusee/pr v0.0.0-20211218123204-2c9d47ba8a8d // indirect
 	github.com/shirou/gopsutil/v3 v3.21.10 // indirect
 	github.com/sirupsen/logrus v1.7.0 // indirect
 	github.com/soheilhy/cmux v0.1.5 // indirect
