@@ -1,12 +1,11 @@
 package fz
 
 import (
-	"bytes"
 	"encoding/xml"
+	"fmt"
 	"io"
 	"reflect"
 	"sort"
-	"strings"
 )
 
 type NamedConfigItem struct {
@@ -76,37 +75,31 @@ func (_ ConfigScope) ReadConfig(
 	return func(r io.Reader) (decls []any, err error) {
 		defer he(&err)
 
+		decoder := xml.NewDecoder(r)
+
 		for {
-			var data struct {
-				XMLName xml.Name
-				Raw     []byte `xml:",innerxml"`
-			}
-			decoder := xml.NewDecoder(r)
-			err = decoder.Decode(&data)
+
+			token, err := decoder.Token()
 			if err == io.EOF {
 				err = nil
 				break
 			}
 			ce(err)
 
-			item, ok := nameds[data.XMLName.Local]
+			start, ok := token.(xml.StartElement)
+			if !ok {
+				ce.With(
+					fmt.Errorf("expecting start element"),
+				)(err)
+			}
+
+			item, ok := nameds[start.Name.Local]
 			if !ok {
 				// unknown config key
 				continue
 			}
 			ptr := reflect.New(reflect.TypeOf(item.Value))
-			valueDecoder := xml.NewDecoder(
-				io.MultiReader(
-					strings.NewReader("<"),
-					strings.NewReader(data.XMLName.Local),
-					strings.NewReader(">"),
-					bytes.NewReader(data.Raw),
-					strings.NewReader("</"),
-					strings.NewReader(data.XMLName.Local),
-					strings.NewReader(">"),
-				),
-			)
-			ce(valueDecoder.Decode(ptr.Interface()))
+			ce(decoder.DecodeElement(ptr.Interface(), &start))
 			decls = append(decls, ptr.Interface())
 		}
 
