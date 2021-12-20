@@ -48,6 +48,7 @@ func TestActionCodec(t *testing.T) {
 		var action Action
 		ce(unmarshalAction(
 			xml.NewDecoder(strings.NewReader(c.XML)),
+			nil,
 			&action,
 		))
 		if sb.MustCompare(

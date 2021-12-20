@@ -1,13 +1,10 @@
 package fz
 
 import (
-	"bytes"
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"io"
 	"reflect"
-	"strings"
 	"sync"
 
 	"github.com/reusee/e4"
@@ -26,41 +23,31 @@ func RegisterAction(value any) {
 
 var ErrActionNotRegistered = errors.New("action not registered")
 
-func unmarshalAction(d *xml.Decoder, target *Action) (err error) {
+func unmarshalAction(d *xml.Decoder, start *xml.StartElement, target *Action) (err error) {
 
-	var data struct {
-		XMLName xml.Name
-		Raw     []byte `xml:",innerxml"`
-	}
-	if err := d.Decode(&data); err != nil {
-		return we(err)
+	if start == nil {
+		token, err := nextTokenSkipCharData(d)
+		if err != nil {
+			return we(err)
+		}
+		s, ok := token.(xml.StartElement)
+		if !ok {
+			return we(fmt.Errorf("execpting end element"))
+		}
+		start = &s
 	}
 
-	v, ok := registeredActionTypes.Load(data.XMLName.Local)
+	v, ok := registeredActionTypes.Load(start.Name.Local)
 	if !ok {
 		return we.With(
-			e4.Info("action: %s", data.XMLName.Local),
+			e4.Info("action: %s", start.Name.Local),
 		)(ErrActionNotRegistered)
 	}
 	t := v.(reflect.Type)
 
 	ptr := reflect.New(t)
-	valueDecoder := xml.NewDecoder(
-		io.MultiReader(
-			strings.NewReader("<"),
-			strings.NewReader(data.XMLName.Local),
-			strings.NewReader(">"),
-			bytes.NewReader(data.Raw),
-			strings.NewReader("</"),
-			strings.NewReader(data.XMLName.Local),
-			strings.NewReader(">"),
-		),
-	)
-	ce(valueDecoder.Decode(ptr.Interface()))
-	action := ptr.Elem().Interface().(Action)
-	if action != nil {
-		*target = action
-	}
+	ce(d.DecodeElement(ptr.Interface(), start))
+	*target = ptr.Elem().Interface().(Action)
 
 	return
 }

@@ -79,7 +79,7 @@ func (_ ConfigScope) ReadConfig(
 
 		for {
 
-			token, err := decoder.Token()
+			token, err := nextTokenSkipCharData(decoder)
 			if is(err, io.EOF) {
 				err = nil
 				break

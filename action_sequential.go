@@ -2,7 +2,7 @@ package fz
 
 import (
 	"encoding/xml"
-	"io"
+	"fmt"
 )
 
 type SequentialAction struct {
@@ -51,17 +51,23 @@ func (s *SequentialAction) UnmarshalXML(d *xml.Decoder, start xml.StartElement) 
 	defer he(&err)
 
 	for {
-		var action Action
-		err := unmarshalAction(d, &action)
-		if is(err, io.EOF) {
-			err = nil
-			break
+		token, err := nextTokenSkipCharData(d)
+		if err != nil {
+			return we(err)
 		}
-		ce(err)
+		if end, ok := token.(xml.EndElement); ok {
+			if end.Name != start.Name {
+				return we(xml.UnmarshalError(fmt.Sprintf(
+					"expecting end of %s, got %s", start.Name.Local, end.Name.Local)))
+			}
+			return nil
+		}
+		var action Action
+		start := token.(xml.StartElement)
+		ce(unmarshalAction(d, &start, &action))
 		if action != nil {
 			s.Actions = append(s.Actions, action)
 		}
 	}
 
-	return
 }
