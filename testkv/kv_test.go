@@ -16,12 +16,10 @@ import (
 func TestKV(t *testing.T) {
 	defer he(nil, e4.TestingFatal(t))
 
-	global := dscope.New(dscope.Methods(new(fz.Global))...)
-
-	configDefs := dscope.Methods(new(fz.ConfigScope))
+	defs := dscope.Methods(new(fz.Def))
 
 	// actions
-	configDefs = append(configDefs, &fz.MainAction{
+	defs = append(defs, &fz.MainAction{
 		Action: fz.RandomActionTree([]fz.ActionMaker{
 			func() fz.Action {
 				key := rand.Int63()
@@ -40,7 +38,7 @@ func TestKV(t *testing.T) {
 	})
 
 	// provide configs
-	configDefs = append(configDefs, func() MaxClients {
+	defs = append(defs, func() MaxClients {
 		return 8
 	}, func(
 		maxClients MaxClients,
@@ -48,18 +46,20 @@ func TestKV(t *testing.T) {
 		return fz.ConfigItems{maxClients}
 	})
 
-	configScope := global.Fork(configDefs...)
+	scope := dscope.New(defs...)
 
-	// overwrite fz configs
-	configScope = configScope.Fork(
-		func() fz.EnableCPUProfile {
-			return true
-		},
-	)
+	// overwrite
+	defs = defs[:0]
+
+	defs = append(defs, func() fz.EnableCPUProfile {
+		return true
+	})
+
+	scope = scope.Fork(defs...)
 
 	// config write
 	var writeConfig fz.WriteConfig
-	configScope.Assign(&writeConfig)
+	scope.Assign(&writeConfig)
 	f, err := os.Create("config.xml")
 	ce(err)
 	ce(writeConfig(f))
@@ -67,66 +67,63 @@ func TestKV(t *testing.T) {
 
 	// config read
 	var readConfig fz.ReadConfig
-	configScope.Assign(&readConfig)
+	scope.Assign(&readConfig)
 	content, err := os.ReadFile("config.xml")
 	ce(err)
-	defs, err := readConfig(bytes.NewReader(content))
+	defs, err = readConfig(bytes.NewReader(content))
 	ce(err)
-	configScope = configScope.Fork(defs...)
+	scope = scope.Fork(defs...)
 
 	var kv *KV
 
-	executeDefs := dscope.Methods(new(fz.ExecuteScope))
-	executeDefs = append(executeDefs, func(
-		maxClients MaxClients,
-	) (
-		start fz.Start,
-		stop fz.Stop,
-		do fz.Do,
-	) {
+	scope = scope.Fork(
+		func(
+			maxClients MaxClients,
+		) (
+			start fz.Start,
+			stop fz.Stop,
+			do fz.Do,
+		) {
 
-		// Start
-		start = func() error {
-			kv = NewKV(int(maxClients))
-			return nil
-		}
-
-		// Stop
-		stop = func() error {
-			return nil
-		}
-
-		// Do
-		do = func(action fz.Action) error {
-			switch action := action.(type) {
-
-			case ActionSet:
-				kv.Set(action.Key, action.Value)
-
-			case ActionGet:
-				kv.Get(action.Key)
-
-			default:
-				panic(fmt.Errorf("unknown action: %T", action))
+			// Start
+			start = func() error {
+				kv = NewKV(int(maxClients))
+				return nil
 			}
-			return nil
-		}
 
-		return
-	})
+			// Stop
+			stop = func() error {
+				return nil
+			}
 
-	// operators
-	executeDefs = append(executeDefs, &fz.Operators{
-		fz.Operator{
-			AfterStop: func() {
-				pt("test done, %d kv operations\n", atomic.LoadInt64(&kv.numOps))
+			// Do
+			do = func(action fz.Action) error {
+				switch action := action.(type) {
+
+				case ActionSet:
+					kv.Set(action.Key, action.Value)
+
+				case ActionGet:
+					kv.Get(action.Key)
+
+				default:
+					panic(fmt.Errorf("unknown action: %T", action))
+				}
+				return nil
+			}
+
+			return
+		},
+		&fz.Operators{
+			fz.Operator{
+				AfterStop: func() {
+					pt("test done, %d kv operations\n", atomic.LoadInt64(&kv.numOps))
+				},
 			},
 		},
-	})
+	)
 
-	executeScope := configScope.Fork(executeDefs...)
-
-	executeScope.Call(func(
+	scope.Call(func(
 		execute fz.Execute,
 	) {
 		ce(execute())
