@@ -6,7 +6,7 @@ import (
 	"github.com/reusee/fz"
 )
 
-func (_ ExecuteScope) Do() fz.Do {
+func (_ Def2) Do() fz.Do {
 	return func(action fz.Action) error {
 
 		switch action := action.(type) {

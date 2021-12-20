@@ -7,13 +7,10 @@ import (
 func run() (err error) {
 	defer he(&err)
 
-	globalScope := NewGlobalScope()
-	configScope := NewConfigScope(globalScope)
-	cubeScope := NewCubeScope(configScope)
-	executeScope := NewExecuteScope(cubeScope)
+	scope := NewScope()
 
 	var execute fz.Execute
-	executeScope.Assign(&execute)
+	scope.Assign(&execute)
 	ce(execute())
 
 	return

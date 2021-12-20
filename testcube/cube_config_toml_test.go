@@ -7,7 +7,7 @@ import (
 )
 
 func TestUpdateCubeConfig(t *testing.T) {
-	NewTestScope().Call(func(
+	NewScope().Call(func(
 		update UpdateCubeConfigTOML,
 	) {
 

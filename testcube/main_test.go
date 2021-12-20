@@ -10,13 +10,3 @@ func TestRun(t *testing.T) {
 	defer he(nil, e4.TestingFatal(t))
 	ce(run())
 }
-
-func NewTestScope() Scope {
-	return NewExecuteScope(
-		NewCubeScope(
-			NewConfigScope(
-				NewGlobalScope(),
-			),
-		),
-	)
-}

@@ -12,7 +12,7 @@ import (
 
 type UpdateCubeConfigTOML func(r io.Reader) (result []byte, err error)
 
-func (_ CubeScope) UpdateCubeConfigTOML() UpdateCubeConfigTOML {
+func (_ Def) UpdateCubeConfigTOML() UpdateCubeConfigTOML {
 	return func(r io.Reader) (result []byte, err error) {
 		defer he(&err)
 

@@ -26,7 +26,7 @@ import (
 func TestNewCubeCluster(t *testing.T) {
 	defer he(nil, e4.TestingFatal(t))
 
-	NewTestScope().Call(func(
+	NewScope().Call(func(
 		scope Scope,
 		cleanup fz.Cleanup,
 		tempDir fz.TempDir,

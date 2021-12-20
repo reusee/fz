@@ -2,7 +2,7 @@ package main
 
 import "github.com/reusee/fz"
 
-func (_ ExecuteScope) Start() fz.Start {
+func (_ Def2) Start() fz.Start {
 	return func() error {
 		//TODO
 		return nil
