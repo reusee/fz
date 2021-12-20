@@ -57,7 +57,10 @@ func unmarshalAction(d *xml.Decoder, target *Action) (err error) {
 		),
 	)
 	ce(valueDecoder.Decode(ptr.Interface()))
-	*target = ptr.Elem().Interface().(Action)
+	action := ptr.Elem().Interface().(Action)
+	if action != nil {
+		*target = action
+	}
 
 	return
 }

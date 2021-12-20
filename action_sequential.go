@@ -58,7 +58,9 @@ func (s *SequentialAction) UnmarshalXML(d *xml.Decoder, start xml.StartElement) 
 			break
 		}
 		ce(err)
-		s.Actions = append(s.Actions, action)
+		if action != nil {
+			s.Actions = append(s.Actions, action)
+		}
 	}
 
 	return
