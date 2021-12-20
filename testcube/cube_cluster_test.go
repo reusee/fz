@@ -13,6 +13,8 @@ import (
 	"github.com/matrixorigin/matrixcube/aware"
 	"github.com/matrixorigin/matrixcube/config"
 	"github.com/matrixorigin/matrixcube/pb/meta"
+	"github.com/matrixorigin/matrixcube/raftstore"
+	"github.com/matrixorigin/matrixcube/server"
 	"github.com/matrixorigin/matrixcube/storage"
 	"github.com/matrixorigin/matrixcube/storage/executor/simple"
 	"github.com/matrixorigin/matrixcube/storage/kv"
@@ -30,6 +32,8 @@ func TestNewCubeCluster(t *testing.T) {
 		scope Scope,
 		cleanup fz.Cleanup,
 		tempDir fz.TempDir,
+		defaultConfig DefaultCubeConfig,
+		randomize RandomizeCubeConfig,
 	) {
 		defer cleanup()
 
@@ -56,87 +60,80 @@ func TestNewCubeCluster(t *testing.T) {
 		for i := 0; i < numNodes; i++ {
 			i := i
 
-			nodeScope := NewCubeNodeScope(
-				scope,
-				func() CubeNodeID {
-					return CubeNodeID(i)
-				},
-				func() TapCubeConfig {
-					return func(conf CubeConfig) {
+			conf := defaultConfig(i)
+			randomize(conf)
 
-						loggerConfigStr := `{
-              "level": "debug",
-              "encoding": "json"
-            }`
-						var loggerConfig zap.Config
-						ce(json.NewDecoder(strings.NewReader(loggerConfigStr)).Decode(&loggerConfig))
-						logger, err := loggerConfig.Build()
-						ce(err)
-						defer logger.Sync()
+			loggerConfigStr := `{
+        "level": "debug",
+        "encoding": "json"
+      }`
+			var loggerConfig zap.Config
+			ce(json.NewDecoder(strings.NewReader(loggerConfigStr)).Decode(&loggerConfig))
+			logger, err := loggerConfig.Build()
+			ce(err)
+			defer logger.Sync()
 
-						fs := vfs.Default
-						conf.FS = fs
+			fs := vfs.Default
+			conf.FS = fs
 
-						conf.RaftAddr = net.JoinHostPort("127.0.0.1", nextPort())
-						conf.ClientAddr = net.JoinHostPort("127.0.0.1", nextPort())
-						conf.DataPath = filepath.Join(string(tempDir), fmt.Sprintf("data-%d", i))
-						conf.Logger = logger
+			conf.RaftAddr = net.JoinHostPort("127.0.0.1", nextPort())
+			conf.ClientAddr = net.JoinHostPort("127.0.0.1", nextPort())
+			conf.DataPath = filepath.Join(string(tempDir), fmt.Sprintf("data-%d", i))
+			conf.Logger = logger
 
-						conf.Prophet.DataDir = filepath.Join(string(tempDir), fmt.Sprintf("prophet-%d", i))
-						conf.Prophet.RPCAddr = net.JoinHostPort("127.0.0.1", nextPort())
-						if i > 0 {
-							conf.Prophet.EmbedEtcd.Join = prophetEtcdEndpoints[0]
-						}
-						conf.Prophet.EmbedEtcd.ClientUrls = "http://" + net.JoinHostPort("localhost", nextPort())
-						conf.Prophet.EmbedEtcd.PeerUrls = prophetEtcdEndpoints[i]
+			conf.Prophet.DataDir = filepath.Join(string(tempDir), fmt.Sprintf("prophet-%d", i))
+			conf.Prophet.RPCAddr = net.JoinHostPort("127.0.0.1", nextPort())
+			if i > 0 {
+				conf.Prophet.EmbedEtcd.Join = prophetEtcdEndpoints[0]
+			}
+			conf.Prophet.EmbedEtcd.ClientUrls = "http://" + net.JoinHostPort("localhost", nextPort())
+			conf.Prophet.EmbedEtcd.PeerUrls = prophetEtcdEndpoints[i]
 
-						conf.Storage = func() config.StorageConfig {
-							kvStorage, err := pebble.NewStorage(
-								fs.PathJoin(string(tempDir), fmt.Sprintf("storage-%d", i)),
-								logger,
-								&crdbpebble.Options{},
-							)
-							ce(err)
-							base := kv.NewBaseStorage(kvStorage, fs)
-							dataStorage := kv.NewKVDataStorage(base, simple.NewSimpleKVExecutor(kvStorage))
-							return config.StorageConfig{
-								DataStorageFactory: func(group uint64) storage.DataStorage {
-									return dataStorage
-								},
-								ForeachDataStorageFunc: func(fn func(storage.DataStorage)) {
-									fn(dataStorage)
-								},
-							}
-						}()
+			conf.Storage = func() config.StorageConfig {
+				kvStorage, err := pebble.NewStorage(
+					fs.PathJoin(string(tempDir), fmt.Sprintf("storage-%d", i)),
+					logger,
+					&crdbpebble.Options{},
+				)
+				ce(err)
+				base := kv.NewBaseStorage(kvStorage, fs)
+				dataStorage := kv.NewKVDataStorage(base, simple.NewSimpleKVExecutor(kvStorage))
+				return config.StorageConfig{
+					DataStorageFactory: func(group uint64) storage.DataStorage {
+						return dataStorage
+					},
+					ForeachDataStorageFunc: func(fn func(storage.DataStorage)) {
+						fn(dataStorage)
+					},
+				}
+			}()
 
-						conf.Customize = config.CustomizeConfig{
-							CustomShardStateAwareFactory: func() aware.ShardStateAware {
-								return &cubeShardStateAware{
-									created: func(_ meta.Shard) {
-										cond.L.Lock()
-										numCreated++
-										cond.L.Unlock()
-										cond.Signal()
-									},
-									becomeLeader: func(_ meta.Shard) {
-										cond.L.Lock()
-										numLeaderReady++
-										cond.L.Unlock()
-										cond.Signal()
-									},
-								}
-							},
-						}
-
+			conf.Customize = config.CustomizeConfig{
+				CustomShardStateAwareFactory: func() aware.ShardStateAware {
+					return &cubeShardStateAware{
+						created: func(_ meta.Shard) {
+							cond.L.Lock()
+							numCreated++
+							cond.L.Unlock()
+							cond.Signal()
+						},
+						becomeLeader: func(_ meta.Shard) {
+							cond.L.Lock()
+							numLeaderReady++
+							cond.L.Unlock()
+							cond.Signal()
+						},
 					}
 				},
-			)
+			}
 
-			nodeScope.Call(func(
-				app CubeNodeApplication,
-			) {
-				ce(app.Start())
+			store := raftstore.NewStore(conf)
+
+			app := server.NewApplication(server.Cfg{
+				Store: store,
 			})
+
+			ce(app.Start())
 
 		}
 
