@@ -38,7 +38,7 @@ func (t *MainAction) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err e
 	return nil
 }
 
-func (_ ConfigScope) MainActionConfig(
+func (_ Def) MainActionConfigItem(
 	action MainAction,
 ) ConfigItems {
 	return ConfigItems{action}

@@ -29,17 +29,17 @@ func SaveCPUProfile(filename string) Operator {
 
 type EnableCPUProfile bool
 
-func (_ ConfigScope) EnableCPUProfile() EnableCPUProfile {
+func (_ Def) EnableCPUProfile() EnableCPUProfile {
 	return false
 }
 
-func (_ ConfigScope) EnableCPUProfileConfig(
+func (_ Def) EnableCPUProfileConfig(
 	enable EnableCPUProfile,
 ) ConfigItems {
 	return ConfigItems{enable}
 }
 
-func (_ ExecuteScope) CPUProfile(
+func (_ Def) CPUProfile(
 	enable EnableCPUProfile,
 ) Operators {
 	if !enable {

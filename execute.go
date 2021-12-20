@@ -12,15 +12,23 @@ type (
 	Do    func(action Action) error
 )
 
+func (_ Def) DumbExecuteFuncs() (
+	_ Start,
+	_ Stop,
+	_ Do,
+) {
+	panic("fixme: provide Start, Stop, Do")
+}
+
 type Execute func() error
 
-func (_ ExecuteScope) Execute(
+func (_ Def) Execute(
 	start Start,
 	stop Stop,
 	do Do,
 	mainAction MainAction,
 	ops Operators,
-	doAction DoAction,
+	doAction doAction,
 	scope dscope.Scope,
 ) Execute {
 	return func() (err error) {
@@ -77,12 +85,12 @@ func (_ ExecuteScope) Execute(
 	}
 }
 
-type DoAction func(action Action) error
+type doAction func(action Action) error
 
-func (_ ExecuteScope) DoAction(
+func (_ Def) DoAction(
 	do Do,
 ) (
-	doAction DoAction,
+	doAction doAction,
 ) {
 
 	doAction = func(action Action) error {

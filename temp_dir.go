@@ -6,7 +6,7 @@ import (
 
 type TempDir string
 
-func (_ Global) TempDir() (
+func (_ Def) TempDir() (
 	dir TempDir,
 	cleanup Cleanup,
 ) {

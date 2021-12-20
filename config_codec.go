@@ -13,7 +13,7 @@ type NamedConfigItem struct {
 	Value any
 }
 
-func (_ ConfigScope) NamedConfigItems(
+func (_ Def) NamedConfigItems(
 	items ConfigItems,
 ) (
 	nameds []NamedConfigItem,
@@ -42,7 +42,7 @@ func (_ ConfigScope) NamedConfigItems(
 
 type WriteConfig func(w io.Writer) error
 
-func (_ ConfigScope) WriteConfig(
+func (_ Def) WriteConfig(
 	nameds []NamedConfigItem,
 ) WriteConfig {
 
@@ -69,7 +69,7 @@ var configWeights = map[string]int{
 
 type ReadConfig func(r io.Reader) ([]any, error)
 
-func (_ ConfigScope) ReadConfig(
+func (_ Def) ReadConfig(
 	nameds map[string]NamedConfigItem,
 ) ReadConfig {
 	return func(r io.Reader) (decls []any, err error) {

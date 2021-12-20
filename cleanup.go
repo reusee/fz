@@ -14,6 +14,6 @@ func (_ Cleanup) Reduce(_ dscope.Scope, vs []reflect.Value) reflect.Value {
 	return dscope.Reduce(vs)
 }
 
-func (_ Global) DumbCleanup() Cleanup {
+func (_ Def) DumbCleanup() Cleanup {
 	return func() {}
 }
